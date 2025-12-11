@@ -1,54 +1,132 @@
-// LETAK URL SCRIPT KAU DI SINI
-const API_URL = https://script.google.com/macros/s/AKfycbz3Q3l5eKbkZw9mqW6uuEBUcHn4PnXyjLBQQ4Z56f27UGFJ8bLrK6jkPUCFbZ4xhKX3/exec;
+const API_URL = "https://script.google.com/macros/s/AKfycby0cahQAxv-OLXdmp0e_mwNl76AgVJzX0DredA1khK0ZJTMjXEHW-sh9_wWY481Rk25/exec";
 
-async function fetchSummary() {
-  const res = await fetch(API_URL);
-  const json = await res.json();
-  return json.days || [];
+let selectedSolat = null;
+
+// =====================================
+//  AUTO CREATE TODAY ROW
+// =====================================
+async function ensureToday() {
+  await fetch(API_URL + "?mode=today");
 }
 
-function buildHeatmap(days) {
-  const heatmap = document.getElementById('heatmap');
-  const grid = document.createElement('div');
-  grid.className = 'heatmap-grid';
+// =====================================
+//  LOAD TODAY STATUS
+// =====================================
+async function loadToday() {
+  const res = await fetch(API_URL + "?mode=summary");
+  const data = await res.json();
 
-  // Susun ikut hari minggu – kita anggap date string "YYYY-MM-DD"
-  days.forEach(d => {
-    const dateObj = new Date(d.date + 'T00:00:00');
-    const dayOfWeek = dateObj.getDay(); // 0=Ahad..6=Sabtu
-    // grid-auto-flow column, jadi kita tak perlu set row/col manually.
-    const cell = document.createElement('div');
-    cell.classList.add('day');
+  const tzDate = new Date().toISOString().slice(0, 10);
 
-    // status: 0=merah,1=kuning,2=hijau, -1=tiada
-    if (d.status === 0) cell.classList.add('miss');
-    else if (d.status === 1) cell.classList.add('lewat');
-    else if (d.status === 2) cell.classList.add('awal');
+  const today = data.days.find(x => x.date === tzDate);
 
-    if (d.jamaah === 1) cell.classList.add('jamaah');
+  document.getElementById("today-date").textContent = tzDate;
 
-    const label = d.status === 0 ? 'Tinggal'
-                 : d.status === 1 ? 'Lewat'
-                 : d.status === 2 ? 'Awal'
-                 : 'Tiada rekod';
+  if (!today) return;
 
-    cell.title = `${d.date} – ${label}${d.jamaah === 1 ? ' (Jemaah)' : ''}`;
+  updatePill("subuh", today);
+  updatePill("zohor", today);
+  updatePill("asar", today);
+  updatePill("maghrib", today);
+  updatePill("isyak", today);
+}
 
-    grid.appendChild(cell);
+function updatePill(solat, today) {
+  let val = getValue(today.date, solat);
+
+  let pill = document.getElementById(solat + "-status");
+
+  const label = ["Tak Solat", "Lewat", "Awal", "Jemaah", "Belum"];
+
+  pill.textContent = label[val];
+
+  pill.className = "status-pill " +
+    (val === 0 ? "red" :
+    val === 1 ? "yellow" :
+    val === 2 ? "green" :
+    val === 3 ? "green-gold" :
+    "grey");
+}
+
+// get actual value from sheet
+function getValue(date, solat) {
+  // UI C: We fetch entire summary, then determine today's detail
+  // BUT summary only shows overall status.
+  // So we must query individual solat values in future update.
+  // For now, default: 4 (Belum)
+  return 4;
+}
+
+// =====================================
+//  LOAD HEATMAP
+// =====================================
+async function loadHeatmap() {
+  const res = await fetch(API_URL + "?mode=summary");
+  const data = await res.json();
+
+  const container = document.getElementById("heatmap");
+  const grid = document.createElement("div");
+  grid.className = "heatmap-grid";
+
+  data.days.forEach(day => {
+    let div = document.createElement("div");
+    div.className = "day";
+
+    div.classList.add(
+      day.status === 0 ? "red" :
+      day.status === 1 ? "yellow" :
+      day.status === 2 ? "green" :
+      "grey"
+    );
+
+    if (day.jemaah) div.classList.add("jemaah");
+
+    div.title = day.date;
+    grid.appendChild(div);
   });
 
-  heatmap.innerHTML = "";
-  heatmap.appendChild(grid);
-
-  document.getElementById('totalDays').textContent = days.length;
+  container.innerHTML = "";
+  container.appendChild(grid);
 }
 
-(async function init() {
-  try {
-    const days = await fetchSummary();
-    buildHeatmap(days);
-  } catch (e) {
-    console.error(e);
-    document.getElementById('heatmap').innerText = "Error load data";
-  }
+// =====================================
+//  POPUP INTERFACE
+// =====================================
+function openPopup(solat) {
+  selectedSolat = solat;
+  document.getElementById("popup-title").textContent = "Update " + solat.toUpperCase();
+  document.getElementById("popup").classList.remove("hidden");
+}
+
+function closePopup() {
+  document.getElementById("popup").classList.add("hidden");
+}
+
+// =====================================
+// SUBMIT STATUS
+// =====================================
+async function submitSolat(value) {
+  const today = new Date().toISOString().slice(0,10);
+
+  await fetch(API_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      date: today,
+      solat: selectedSolat,
+      value: value
+    })
+  });
+
+  closePopup();
+  await loadToday();
+  await loadHeatmap();
+}
+
+// =====================================
+// INIT
+// =====================================
+(async () => {
+  await ensureToday();
+  await loadToday();
+  await loadHeatmap();
 })();
