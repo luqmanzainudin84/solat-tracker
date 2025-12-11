@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <title>Solat Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <h1>Solat Tracker</h1>
+  </header>
+
+  <main>
+    <section class="level-card">
+      <div>
+        <div class="label">TOTAL HARI DIREKOD</div>
+        <div id="totalDays" class="big-number">0</div>
+      </div>
+      <div class="mascot">🕌</div>
+    </section>
+
+    <section class="heatmap-section">
+      <div class="heatmap-header">
+        <span>1 YEAR SOLAT STATUS</span>
+        <div class="legend">
+          <span class="dot dot-green"></span> Awal
+          <span class="dot dot-yellow"></span> Lewat
+          <span class="dot dot-red"></span> Tinggal
+          <span class="jamaah-sample"></span> Jemaah
+        </div>
+      </div>
+      <div id="heatmap" class="heatmap-scroll">
+        <!-- grid akan dimasukkan oleh JS -->
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
