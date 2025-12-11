@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<title>Input Solat Harian</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body { font-family: Arial; padding:20px; background:#111; color:white }
+  select, input { padding:10px; margin:5px 0; width:100%; border-radius:8px; }
+  button {
+    width:100%; padding:14px; margin-top:15px;
+    background:#28a745; border:none; color:white;
+    font-size:16px; border-radius:10px;
+  }
+  .card { background:#222; padding:15px; border-radius:12px; margin-bottom:18px; }
+  h2 { margin-top:0; }
+</style>
+</head>
+<body>
+
+<h2>Rekod Solat Harian</h2>
+
+<div class="card">
+  <label>Tarikh:</label>
+  <input type="date" id="date">
+</div>
+
+<div class="card">
+  <label>Subuh</label>
+  <select id="subuh">
+    <option value="0">❌ Tak solat</option>
+    <option value="1">⏳ Lewat</option>
+    <option value="2">✔ Awal</option>
+    <option value="3">⭐ Jemaah</option>
+  </select>
+</div>
+
+<div class="card">
+  <label>Zohor</label>
+  <select id="zohor">
+    <option value="0">❌ Tak solat</option>
+    <option value="1">⏳ Lewat</option>
+    <option value="2">✔ Awal</option>
+    <option value="3">⭐ Jemaah</option>
+  </select>
+</div>
+
+<div class="card">
+  <label>Asar</label>
+  <select id="asar">
+    <option value="0">❌ Tak solat</option>
+    <option value="1">⏳ Lewat</option>
+    <option value="2">✔ Awal</option>
+    <option value="3">⭐ Jemaah</option>
+  </select>
+</div>
+
+<div class="card">
+  <label>Maghrib</label>
+  <select id="maghrib">
+    <option value="0">❌ Tak solat</option>
+    <option value="1">⏳ Lewat</option>
+    <option value="2">✔ Awal</option>
+    <option value="3">⭐ Jemaah</option>
+  </select>
+</div>
+
+<div class="card">
+  <label>Isyak</label>
+  <select id="isyak">
+    <option value="0">❌ Tak solat</option>
+    <option value="1">⏳ Lewat</option>
+    <option value="2">✔ Awal</option>
+    <option value="3">⭐ Jemaah</option>
+  </select>
+</div>
+
+<button onclick="submitSolat()">Simpan Rekod</button>
+
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbzby5EXbeUytmzfP_h01McjTYeOGENEbS6vza2Wr6Wq5OI2uZaryel2NTzDU3AF2cnP/exec"; // <== TUKAR INI
+
+async function submitSolat() {
+  const data = {
+    date: document.getElementById("date").value,
+    subuh: Number(document.getElementById("subuh").value),
+    zohor: Number(document.getElementById("zohor").value),
+    asar: Number(document.getElementById("asar").value),
+    maghrib: Number(document.getElementById("maghrib").value),
+    isyak: Number(document.getElementById("isyak").value),
+  };
+
+  const res = await fetch(API_URL, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+
+  const result = await res.json();
+
+  if (result.status === "ok") {
+    alert("Rekod berjaya disimpan!");
+  } else {
+    alert("Ralat. Tidak dapat simpan rekod.");
+  }
+}
+</script>
+
+</body>
+</html>
