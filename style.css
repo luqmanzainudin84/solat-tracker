@@ -115,3 +115,27 @@ h2 {
   border: none;
   border-radius: 8px;
 }
+
+/* Force popup to capture all clicks properly */
+.popup {
+    position: fixed !important;
+    z-index: 999999 !important;
+    pointer-events: auto !important;
+}
+
+/* Popup box also must be click priority */
+.popup-box {
+    position: relative !important;
+    z-index: 1000000 !important;
+    pointer-events: auto !important;
+}
+
+/* Disable click from background */
+body * {
+    pointer-events: none;
+}
+
+.popup, .popup * {
+    pointer-events: auto !important;
+}
+
