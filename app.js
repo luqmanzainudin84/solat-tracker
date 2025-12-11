@@ -2,31 +2,10 @@ const API = "https://script.google.com/macros/s/AKfycbxt-tfAJ6wQIE6suX3eSeGf1wux
 
 let selectedSolat = null;
 
-async function init() {
-  const today = new Date().toISOString().slice(0,10);
-  document.getElementById("today-date").innerText = today;
-
-  await fetch(API + "?mode=today");
-  await loadToday();
-  await loadHeatmap();
-}
-
-async function loadToday() {
-  const today = new Date().toISOString().slice(0,10);
-  const res = await fetch(API + "?mode=detail&date=" + today);
-  const d = await res.json();
-
-  updatePill("subuh", d.subuh);
-  updatePill("zohor", d.zohor);
-  updatePill("asar", d.asar);
-  updatePill("maghrib", d.maghrib);
-  updatePill("isyak", d.isyak);
-}
-
 function updatePill(solat, val) {
-  const el = document.getElementById(solat+"-pill");
-  const label = ["Tak Solat","Lewat","Awal","Jemaah","Belum"];
-  const classes = ["red","yellow","green","green-gold","grey"];
+  const el = document.getElementById(solat + "-pill");
+  const label = ["Tak Solat", "Lewat", "Awal", "Jemaah", "Belum"];
+  const classes = ["red", "yellow", "green", "green-gold", "grey"];
 
   el.textContent = label[val];
   el.className = "pill " + classes[val];
@@ -43,21 +22,33 @@ function closePopup() {
 }
 
 async function submitSolat(value) {
-  const today = new Date().toISOString().slice(0,10);
+  const today = new Date().toISOString().slice(0, 10);
 
   await fetch(API, {
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({
-      date:today,
-      solat:selectedSolat,
-      value:value
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      date: today,
+      solat: selectedSolat,
+      value: value
     })
   });
 
   closePopup();
   await loadToday();
   await loadHeatmap();
+}
+
+async function loadToday() {
+  const today = new Date().toISOString().slice(0, 10);
+  const res = await fetch(API + "?mode=detail&date=" + today);
+  const d = await res.json();
+
+  updatePill("subuh", d.subuh);
+  updatePill("zohor", d.zohor);
+  updatePill("asar", d.asar);
+  updatePill("maghrib", d.maghrib);
+  updatePill("isyak", d.isyak);
 }
 
 async function loadHeatmap() {
@@ -78,6 +69,15 @@ async function loadHeatmap() {
 
     container.appendChild(div);
   });
+}
+
+async function init() {
+  const today = new Date().toISOString().slice(0, 10);
+  document.getElementById("today-date").innerText = today;
+
+  await fetch(API + "?mode=today");
+  await loadToday();
+  await loadHeatmap();
 }
 
 init();
