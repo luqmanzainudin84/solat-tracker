@@ -1,4 +1,4 @@
-const API = "https://script.google.com/macros/s/AKfycby0cahQAxv-OLXdmp0e_mwNl76AgVJzX0DredA1khK0ZJTMjXEHW-sh9_wWY481Rk25/exec";
+const API = "https://script.google.com/macros/s/AKfycbxt-tfAJ6wQIE6suX3eSeGf1wuxXhCrNgAlPC6eFPSiFIAF3dVCKVvpaSA-ChuIlIGV/exec";
 
 let selectedSolat = null;
 
@@ -81,3 +81,4 @@ async function loadHeatmap() {
 }
 
 init();
+
