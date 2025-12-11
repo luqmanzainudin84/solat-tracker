@@ -85,3 +85,47 @@ body {
   margin:8px 0;
   font-size:16px;
 }
+
+/* ===== FIX CRITICAL: Popup cannot be clicked ===== */
+
+.popup {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.6);
+  z-index: 999999 !important;
+  pointer-events: auto !important;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.popup-box {
+  background: #222;
+  padding: 20px;
+  border-radius: 14px;
+  width: 90%;
+  max-width: 320px;
+  z-index: 1000000 !important;
+  pointer-events: auto !important;
+  position: relative;
+}
+
+body * {
+  z-index: 1;
+}
+
+.today-card,
+.heatmap,
+.solat-row {
+  position: relative;
+  z-index: 2;
+}
+
+.hidden {
+  display: none !important;
+}
+
+
