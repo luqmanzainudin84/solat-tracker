@@ -1,100 +1,40 @@
-const API_URL = "https://script.google.com/macros/s/AKfycby0cahQAxv-OLXdmp0e_mwNl76AgVJzX0DredA1khK0ZJTMjXEHW-sh9_wWY481Rk25/exec";
+const API = "https://script.google.com/macros/s/AKfycbx1mkIYOeAFDlJIWrC3ZFZYpK2z5WcvMESGMU79ghQGksYnggt9MenxAotGrA_GjVzS/exec";
 
 let selectedSolat = null;
 
-// =====================================
-//  AUTO CREATE TODAY ROW
-// =====================================
-async function ensureToday() {
-  await fetch(API_URL + "?mode=today");
+async function init() {
+  const today = new Date().toISOString().slice(0,10);
+  document.getElementById("today-date").innerText = today;
+
+  await fetch(API + "?mode=today");
+  await loadToday();
+  await loadHeatmap();
 }
 
-// =====================================
-//  LOAD TODAY STATUS
-// =====================================
 async function loadToday() {
-  const res = await fetch(API_URL + "?mode=summary");
-  const data = await res.json();
+  const today = new Date().toISOString().slice(0,10);
+  const res = await fetch(API + "?mode=detail&date=" + today);
+  const d = await res.json();
 
-  const tzDate = new Date().toISOString().slice(0, 10);
-
-  const today = data.days.find(x => x.date === tzDate);
-
-  document.getElementById("today-date").textContent = tzDate;
-
-  if (!today) return;
-
-  updatePill("subuh", today);
-  updatePill("zohor", today);
-  updatePill("asar", today);
-  updatePill("maghrib", today);
-  updatePill("isyak", today);
+  updatePill("subuh", d.subuh);
+  updatePill("zohor", d.zohor);
+  updatePill("asar", d.asar);
+  updatePill("maghrib", d.maghrib);
+  updatePill("isyak", d.isyak);
 }
 
-function updatePill(solat, today) {
-  let val = getValue(today.date, solat);
+function updatePill(solat, val) {
+  const el = document.getElementById(solat+"-pill");
+  const label = ["Tak Solat","Lewat","Awal","Jemaah","Belum"];
+  const classes = ["red","yellow","green","green-gold","grey"];
 
-  let pill = document.getElementById(solat + "-status");
-
-  const label = ["Tak Solat", "Lewat", "Awal", "Jemaah", "Belum"];
-
-  pill.textContent = label[val];
-
-  pill.className = "status-pill " +
-    (val === 0 ? "red" :
-    val === 1 ? "yellow" :
-    val === 2 ? "green" :
-    val === 3 ? "green-gold" :
-    "grey");
+  el.textContent = label[val];
+  el.className = "pill " + classes[val];
 }
 
-// get actual value from sheet
-function getValue(date, solat) {
-  // UI C: We fetch entire summary, then determine today's detail
-  // BUT summary only shows overall status.
-  // So we must query individual solat values in future update.
-  // For now, default: 4 (Belum)
-  return 4;
-}
-
-// =====================================
-//  LOAD HEATMAP
-// =====================================
-async function loadHeatmap() {
-  const res = await fetch(API_URL + "?mode=summary");
-  const data = await res.json();
-
-  const container = document.getElementById("heatmap");
-  const grid = document.createElement("div");
-  grid.className = "heatmap-grid";
-
-  data.days.forEach(day => {
-    let div = document.createElement("div");
-    div.className = "day";
-
-    div.classList.add(
-      day.status === 0 ? "red" :
-      day.status === 1 ? "yellow" :
-      day.status === 2 ? "green" :
-      "grey"
-    );
-
-    if (day.jemaah) div.classList.add("jemaah");
-
-    div.title = day.date;
-    grid.appendChild(div);
-  });
-
-  container.innerHTML = "";
-  container.appendChild(grid);
-}
-
-// =====================================
-//  POPUP INTERFACE
-// =====================================
 function openPopup(solat) {
   selectedSolat = solat;
-  document.getElementById("popup-title").textContent = "Update " + solat.toUpperCase();
+  document.getElementById("popup-title").innerText = solat.toUpperCase();
   document.getElementById("popup").classList.remove("hidden");
 }
 
@@ -102,19 +42,16 @@ function closePopup() {
   document.getElementById("popup").classList.add("hidden");
 }
 
-// =====================================
-// SUBMIT STATUS
-// =====================================
 async function submitSolat(value) {
   const today = new Date().toISOString().slice(0,10);
 
-  await fetch(API_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      date: today,
-      solat: selectedSolat,
-      value: value
+  await fetch(API, {
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      date:today,
+      solat:selectedSolat,
+      value:value
     })
   });
 
@@ -123,12 +60,24 @@ async function submitSolat(value) {
   await loadHeatmap();
 }
 
-// =====================================
-// INIT
-// =====================================
-(async () => {
-  await ensureToday();
-  await loadToday();
-  await loadHeatmap();
-})();
+async function loadHeatmap() {
+  const res = await fetch(API + "?mode=summary");
+  const data = await res.json();
 
+  const container = document.getElementById("heatmap");
+  container.innerHTML = "";
+
+  data.days.forEach(d => {
+    const div = document.createElement("div");
+    div.classList.add("heat");
+
+    if (d.status === 0) div.style.background = "#e44";
+    else if (d.status === 1) div.style.background = "#e8c547";
+    else if (d.status === 2) div.style.background = "#3ebf6b";
+    else div.style.background = "#555";
+
+    container.appendChild(div);
+  });
+}
+
+init();
