@@ -1,4 +1,4 @@
-const API = "https://script.google.com/macros/s/AKfycbx1mkIYOeAFDlJIWrC3ZFZYpK2z5WcvMESGMU79ghQGksYnggt9MenxAotGrA_GjVzS/exec";
+const API = "https://script.google.com/macros/s/AKfycby0cahQAxv-OLXdmp0e_mwNl76AgVJzX0DredA1khK0ZJTMjXEHW-sh9_wWY481Rk25/exec";
 
 let selectedSolat = null;
 
