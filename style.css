@@ -22,10 +22,10 @@ h2 {
 }
 
 .card {
-  background: #fff;
+  background: #ffffff;
   padding: 15px;
   border-radius: 12px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 .row {
@@ -47,12 +47,28 @@ h2 {
   color: #fff;
 }
 
-.red { background: #e63946; }
-.yellow { background: #ffca3a; }
-.green { background: #2ecc71; }
-.gold { background: #f1c40f; color: black; }
-.grey { background: #95a5a6; }
+.red {
+  background: #e63946;
+}
 
+.yellow {
+  background: #ffca3a;
+}
+
+.green {
+  background: #2ecc71;
+}
+
+.gold {
+  background: #f1c40f;
+  color: #000;
+}
+
+.grey {
+  background: #95a5a6;
+}
+
+/* Heatmap */
 .heatmap {
   margin-top: 10px;
   display: grid;
@@ -69,11 +85,8 @@ h2 {
 /* Popup */
 .popup {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.6);
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -85,7 +98,7 @@ h2 {
 }
 
 .popup-box {
-  background: #fff;
+  background: #ffffff;
   padding: 20px;
   border-radius: 12px;
   width: 85%;
@@ -102,40 +115,35 @@ h2 {
   padding: 10px;
   border: none;
   border-radius: 8px;
-  color: white;
+  color: #ffffff;
   font-size: 14px;
   cursor: pointer;
+}
+
+.btn.red {
+  background: #e63946;
+}
+
+.btn.yellow {
+  background: #ffca3a;
+  color: #000;
+}
+
+.btn.green {
+  background: #2ecc71;
+}
+
+.btn.gold {
+  background: #f1c40f;
+  color: #000;
 }
 
 .cancel-btn {
   margin-top: 15px;
   width: 100%;
   padding: 10px;
-  background: #bbb;
+  background: #bbbbbb;
   border: none;
   border-radius: 8px;
+  cursor: pointer;
 }
-
-/* Force popup to capture all clicks properly */
-.popup {
-    position: fixed !important;
-    z-index: 999999 !important;
-    pointer-events: auto !important;
-}
-
-/* Popup box also must be click priority */
-.popup-box {
-    position: relative !important;
-    z-index: 1000000 !important;
-    pointer-events: auto !important;
-}
-
-/* Disable click from background */
-body * {
-    pointer-events: none;
-}
-
-.popup, .popup * {
-    pointer-events: auto !important;
-}
-
