@@ -1,16 +1,21 @@
 <!DOCTYPE html>
 <html lang="ms">
 <head>
-<meta charset="UTF-8">
+<meta charset="UTF-8" />
 <title>Solat Tracker</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="stylesheet" href="style.css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="stylesheet" href="style.css" />
+
+<!-- Disable cache supaya update cepat -->
+<meta http-equiv="Cache-Control" content="no-store" />
 </head>
 
 <body>
 
+<!-- TITLE -->
 <h1 class="title">Solat Tracker</h1>
 
+<!-- TODAY CARD -->
 <section class="today-card">
   <h2 id="today-date">Hari Ini</h2>
 
@@ -40,8 +45,11 @@
   </div>
 </section>
 
+
+<!-- HEATMAP -->
 <h3>Status Setahun</h3>
 <div id="heatmap" class="heatmap"></div>
+
 
 <!-- POPUP -->
 <div id="popup" class="popup hidden">
@@ -57,6 +65,8 @@
   </div>
 </div>
 
+
+<!-- JAVASCRIPT -->
 <script src="app.js"></script>
 
 </body>
