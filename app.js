@@ -1,27 +1,35 @@
-const API = "https://script.google.com/macros/s/AKfycbznOOWdoBsjfw23Eb3o6IJVWwOFFkw6xYJc9gq-xPhgFACjuYYEiBCJja4PoQLniNs/exec";
+// URL Google Apps Script kamu
+const API =
+  "https://script.google.com/macros/s/AKfycbznOOWdoBsjfw23Eb3o6IJVWwOFFkw6xYJc9gq-xPhgFACjuYYEiBCJja4PoQLniNs/exec";
 
 let selectedSolat = null;
 
+// Tukar teks + warna pill
 function updatePill(solat, val) {
   const el = document.getElementById(solat + "-pill");
   const label = ["Tak Solat", "Lewat", "Awal", "Jemaah", "Belum"];
   const classes = ["red", "yellow", "green", "gold", "grey"];
 
-  el.innerText = label[val];
+  el.textContent = label[val];
   el.className = "pill " + classes[val];
 }
 
+// Buka popup
 function openPopup(solat) {
   selectedSolat = solat;
   document.getElementById("popup-title").innerText = solat.toUpperCase();
   document.getElementById("popup").classList.remove("hidden");
 }
 
+// Tutup popup
 function closePopup() {
   document.getElementById("popup").classList.add("hidden");
 }
 
-async function submitSolat(status) {
+// Hantar status ke Google Sheets
+async function submitSolat(value) {
+  if (!selectedSolat) return;
+
   const today = new Date().toISOString().slice(0, 10);
 
   await fetch(API, {
@@ -30,15 +38,16 @@ async function submitSolat(status) {
     body: JSON.stringify({
       date: today,
       solat: selectedSolat,
-      value: status
-    })
+      value: value,
+    }),
   });
 
   closePopup();
-  loadToday();
-  loadHeatmap();
+  await loadToday();
+  await loadHeatmap();
 }
 
+// Ambil status harian
 async function loadToday() {
   const today = new Date().toISOString().slice(0, 10);
   const res = await fetch(API + "?mode=detail&date=" + today);
@@ -51,32 +60,37 @@ async function loadToday() {
   updatePill("isyak", d.isyak);
 }
 
+// Heatmap setahun
 async function loadHeatmap() {
   const res = await fetch(API + "?mode=summary");
   const data = await res.json();
 
-  const map = document.getElementById("heatmap");
-  map.innerHTML = "";
+  const container = document.getElementById("heatmap");
+  container.innerHTML = "";
 
-  data.days.forEach(day => {
-    const box = document.createElement("div");
-    box.classList.add("heat");
+  data.days.forEach((d) => {
+    const div = document.createElement("div");
+    div.classList.add("heat");
 
-    if (day.status === 0) box.style.background = "#e63946";
-    else if (day.status === 1) box.style.background = "#ffca3a";
-    else if (day.status === 2) box.style.background = "#2ecc71";
-    else if (day.status === 3) box.style.background = "#f1c40f";
-    else box.style.background = "#ccc";
+    if (d.status === 0) div.style.background = "#e63946"; // tak solat
+    else if (d.status === 1) div.style.background = "#ffca3a"; // lewat
+    else if (d.status === 2) div.style.background = "#2ecc71"; // awal
+    else if (d.status === 3) div.style.background = "#f1c40f"; // jemaah
+    else div.style.background = "#cccccc"; // belum data
 
-    map.appendChild(box);
+    container.appendChild(div);
   });
 }
 
-function init() {
-  loadToday();
-  loadHeatmap();
-  document.getElementById("today-date").innerText =
-    new Date().toISOString().slice(0, 10);
+// Init page
+async function init() {
+  const today = new Date().toISOString().slice(0, 10);
+  document.getElementById("today-date").innerText = today;
+
+  // pastikan row hari ni wujud
+  await fetch(API + "?mode=today");
+  await loadToday();
+  await loadHeatmap();
 }
 
 init();
