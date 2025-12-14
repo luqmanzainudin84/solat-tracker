@@ -6,132 +6,61 @@
   <title>Solat Tracker</title>
 
   <style>
-    body {
-      margin: 0;
-      padding: 0;
-      background: #f2f2f2;
-      font-family: Arial, sans-serif;
-    }
+    body { margin:0; padding:0; background:#f2f2f2; font-family: Arial, sans-serif; }
+    .container { width: 92%; max-width: 520px; margin: 20px auto; }
+    h2 { text-align:center; margin: 10px 0 6px; }
+    .sub { text-align:center; margin-bottom: 14px; font-size: 13px; opacity:.85; }
+    .topbar { display:flex; gap:10px; align-items:center; justify-content:center; margin: 10px 0 14px; flex-wrap: wrap; }
+    .datebox { background:#fff; border-radius:12px; padding:10px 12px; box-shadow: 0 2px 6px rgba(0,0,0,.12); display:flex; gap:10px; align-items:center; }
+    .datebox label { font-size: 13px; opacity:.85; }
+    input[type="date"] { padding:8px 10px; border-radius:10px; border:1px solid #ddd; font-size: 14px; }
+    .hint { font-size: 12px; opacity:.75; text-align:center; margin-top: 8px; }
 
-    .container {
-      width: 90%;
-      max-width: 450px;
-      margin: 20px auto;
-    }
+    .card { background:#fff; padding: 14px 14px; border-radius: 14px; box-shadow: 0 2px 6px rgba(0,0,0,.15); }
+    .row { display:flex; justify-content:space-between; align-items:center; padding: 10px 0; border-bottom: 1px solid #eee; }
+    .row:last-child { border-bottom:none; }
+    .row span:first-child { font-weight:600; }
 
-    h2, h3 {
-      text-align: center;
-    }
+    .pill { padding: 6px 14px; border-radius: 14px; font-size: 13px; cursor:pointer; color:#fff; user-select:none; }
+    .red { background:#e63946; }
+    .yellow { background:#ffca3a; color:#000; }
+    .green { background:#2ecc71; }
+    .gold { background:#f1c40f; color:#000; }
+    .grey { background:#95a5a6; }
 
-    .date {
-      text-align: center;
-      margin-bottom: 15px;
-      font-weight: bold;
-    }
+    .heatmapTitle { margin: 16px 0 8px; text-align:center; }
+    .heatmap { display:grid; grid-template-columns: repeat(30, 10px); gap: 4px; justify-content:center; }
+    .heat { width:10px; height:10px; border-radius:2px; background:#ccc; }
 
-    .card {
-      background: #ffffff;
-      padding: 15px;
-      border-radius: 12px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-    }
-
-    .row {
-      display: flex;
-      justify-content: space-between;
-      padding: 10px 0;
-      border-bottom: 1px solid #e5e5e5;
-    }
-
-    .row:last-child {
-      border-bottom: none;
-    }
-
-    .pill {
-      padding: 6px 14px;
-      border-radius: 14px;
-      font-size: 14px;
-      cursor: pointer;
-      color: #fff;
-    }
-
-    .red { background: #e63946; }
-    .yellow { background: #ffca3a; color:#000; }
-    .green { background: #2ecc71; }
-    .gold { background: #f1c40f; color:#000; }
-    .grey { background: #95a5a6; }
-
-    .heatmap {
-      margin-top: 12px;
-      display: grid;
-      grid-template-columns: repeat(30, 10px);
-      gap: 4px;
-      justify-content: center;
-    }
-
-    .heat {
-      width: 10px;
-      height: 10px;
-      border-radius: 2px;
-    }
-
-    .popup {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.6);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 9999;
-    }
-
-    .hidden { display: none; }
-
-    .popup-box {
-      background: #fff;
-      padding: 20px;
-      border-radius: 12px;
-      width: 85%;
-      max-width: 350px;
-    }
-
-    .popup-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 10px;
-    }
-
-    .btn {
-      padding: 10px;
-      border: none;
-      border-radius: 8px;
-      font-size: 14px;
-      cursor: pointer;
-      color: #fff;
-    }
-
+    .popup { position: fixed; inset:0; background: rgba(0,0,0,.6); display:flex; justify-content:center; align-items:center; z-index: 9999; }
+    .hidden { display:none; }
+    .popup-box { background:#fff; padding: 18px; border-radius: 14px; width: 90%; max-width: 380px; }
+    .popup-box h3 { margin: 0 0 8px; text-align:center; }
+    .popup-row { display:grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+    .btn { padding: 10px; border:none; border-radius: 10px; font-size: 14px; cursor:pointer; color:#fff; }
     .btn.red { background:#e63946; }
     .btn.yellow { background:#ffca3a; color:#000; }
     .btn.green { background:#2ecc71; }
     .btn.gold { background:#f1c40f; color:#000; }
+    .cancel-btn { margin-top: 12px; width:100%; padding: 10px; border:none; border-radius: 10px; background:#bbb; cursor:pointer; }
 
-    .cancel-btn {
-      margin-top: 15px;
-      width: 100%;
-      padding: 10px;
-      border: none;
-      border-radius: 8px;
-      background: #bbb;
-      cursor: pointer;
-    }
+    .toast { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%);
+      background: rgba(0,0,0,.8); color:#fff; padding: 10px 12px; border-radius: 10px;
+      font-size: 13px; display:none; z-index: 10000; max-width: 90%; }
   </style>
 </head>
 
 <body>
   <div class="container">
     <h2>Solat Tracker</h2>
-    <div id="today-date" class="date"></div>
+    <div class="sub" id="prettyDate">—</div>
+
+    <div class="topbar">
+      <div class="datebox">
+        <label for="pickDate">Tarikh</label>
+        <input id="pickDate" type="date" />
+      </div>
+    </div>
 
     <div class="card">
       <div class="row"><span>Subuh</span><span id="subuh-pill" class="pill grey" onclick="openPopup('subuh')">Belum</span></div>
@@ -141,10 +70,13 @@
       <div class="row"><span>Isyak</span><span id="isyak-pill" class="pill grey" onclick="openPopup('isyak')">Belum</span></div>
     </div>
 
-    <h3>Status Setahun</h3>
+    <div class="heatmapTitle"><b>Status Setahun</b></div>
     <div id="heatmap" class="heatmap"></div>
+
+    <div class="hint">Tip: pilih tarikh → klik waktu solat → pilih status.</div>
   </div>
 
+  <!-- Popup -->
   <div id="popup" class="popup hidden">
     <div class="popup-box">
       <h3 id="popup-title">SOLAT</h3>
@@ -158,24 +90,48 @@
     </div>
   </div>
 
+  <div id="toast" class="toast"></div>
+
 <script>
-/* ================= CONFIG ================= */
+/* ================== CONFIG ================== */
 const API = "https://script.google.com/macros/s/AKfycbwZQZwtD7RM2FYFfMojjiYKm-oAWIrajB8SuyMwYwOFi8yXLwbb_geuzClgRXBQA4hT/exec";
 
 let selectedSolat = null;
-const labels = ["Tak Solat","Lewat","Awal","Jemaah"];
-const colors = ["red","yellow","green","gold"];
+let selectedDate = null; // yyyy-mm-dd
 
-/* ================= UI ================= */
-function updatePill(solat, value) {
+const labels = ["Tak Solat", "Lewat", "Awal", "Jemaah", "Belum"];
+const colors = ["red", "yellow", "green", "gold", "grey"];
+const solatList = ["subuh","zohor","asar","maghrib","isyak"];
+
+function toast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.style.display = "block";
+  clearTimeout(window.__toastTimer);
+  window.__toastTimer = setTimeout(() => t.style.display = "none", 1800);
+}
+
+function setPrettyDate(yyyy_mm_dd) {
+  try {
+    const [y,m,d] = yyyy_mm_dd.split("-").map(Number);
+    const dt = new Date(y, m-1, d);
+    document.getElementById("prettyDate").textContent =
+      dt.toLocaleDateString("ms-MY", { weekday:"long", year:"numeric", month:"long", day:"numeric" });
+  } catch {
+    document.getElementById("prettyDate").textContent = yyyy_mm_dd;
+  }
+}
+
+/* ================== UI ================== */
+function updatePill(solat, val) {
   const el = document.getElementById(solat + "-pill");
-  el.textContent = labels[value];
-  el.className = "pill " + colors[value];
+  el.textContent = labels[val] ?? "Belum";
+  el.className = "pill " + (colors[val] ?? "grey");
 }
 
 function openPopup(solat) {
   selectedSolat = solat;
-  document.getElementById("popup-title").innerText = solat.toUpperCase();
+  document.getElementById("popup-title").innerText = solat.toUpperCase() + " — " + selectedDate;
   document.getElementById("popup").classList.remove("hidden");
 }
 
@@ -183,26 +139,15 @@ function closePopup() {
   document.getElementById("popup").classList.add("hidden");
 }
 
-/* ================= DATA ================= */
-async function submitSolat(value) {
-  if (!selectedSolat) return;
-
-  const date = new Date().toISOString().slice(0,10);
-
-  await fetch(API, {
-    method: "POST",
-    headers: { "Content-Type":"application/json" },
-    body: JSON.stringify({ date, solat: selectedSolat, value })
-  });
-
-  updatePill(selectedSolat, value);
-  closePopup();
-  loadHeatmap();
+/* ================== DATA ================== */
+async function ensureRow(dateStr) {
+  // Create row for any date (backend mode=ensure)
+  const res = await fetch(API + "?mode=ensure&date=" + encodeURIComponent(dateStr));
+  return await res.json();
 }
 
-async function loadToday() {
-  const date = new Date().toISOString().slice(0,10);
-  const res = await fetch(API + "?mode=detail&date=" + date);
+async function loadDay(dateStr) {
+  const res = await fetch(API + "?mode=detail&date=" + encodeURIComponent(dateStr));
   const d = await res.json();
 
   updatePill("subuh", d.subuh);
@@ -212,32 +157,84 @@ async function loadToday() {
   updatePill("isyak", d.isyak);
 }
 
+async function submitSolat(value) {
+  if (!selectedSolat || !selectedDate) return;
+
+  // Ensure row exists (for selected date)
+  const ensured = await ensureRow(selectedDate);
+  if (ensured?.error) {
+    toast("Gagal create row: " + ensured.error);
+    return;
+  }
+
+  const res = await fetch(API, {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({ date: selectedDate, solat: selectedSolat, value })
+  });
+
+  const out = await res.json().catch(() => ({}));
+  if (out?.status !== "updated") {
+    toast(out?.error ? ("Error: " + out.error) : "Update gagal");
+    return;
+  }
+
+  updatePill(selectedSolat, value);
+  closePopup();
+  toast("Updated: " + selectedSolat + " (" + selectedDate + ")");
+  loadHeatmap();
+}
+
 async function loadHeatmap() {
   const res = await fetch(API + "?mode=summary");
   const data = await res.json();
+
   const box = document.getElementById("heatmap");
   box.innerHTML = "";
 
+  // guna warna ikut status: 0 red, 1 yellow, 2 green, 4 grey (belum)
   data.days.forEach(day => {
     const div = document.createElement("div");
-    div.className = "heat " + (colors[day.status] || "grey");
+    div.className = "heat";
+    const s = day.status;
+    if (s === 0) div.style.background = "#e63946";
+    else if (s === 1) div.style.background = "#ffca3a";
+    else if (s === 2) div.style.background = "#2ecc71";
+    else div.style.background = "#cccccc";
+
     box.appendChild(div);
   });
 }
 
-/* ================= INIT ================= */
-async function init() {
-  document.getElementById("today-date").innerText =
-    new Date().toLocaleDateString("ms-MY");
+/* ================== INIT ================== */
+function todayISO() {
+  return new Date().toISOString().slice(0,10);
+}
 
-  await fetch(API + "?mode=today");
-  await loadToday();
+async function setDate(dateStr) {
+  selectedDate = dateStr;
+  document.getElementById("pickDate").value = dateStr;
+  setPrettyDate(dateStr);
+
+  // ensure row exists, then load
+  await ensureRow(dateStr);
+  await loadDay(dateStr);
+}
+
+async function init() {
+  const pick = document.getElementById("pickDate");
+  pick.addEventListener("change", async () => {
+    await setDate(pick.value);
+  });
+
+  // start
+  await setDate(todayISO());
   await loadHeatmap();
 }
 
 init();
 
-/* ====== BIND KE WINDOW (PENTING) ====== */
+/* bind untuk onclick html (confirm boleh) */
 window.openPopup = openPopup;
 window.closePopup = closePopup;
 window.submitSolat = submitSolat;
