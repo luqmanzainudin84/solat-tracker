@@ -72,21 +72,6 @@ input[type="date"] {
 .gold { background: #f1c40f; color:#000; }
 .grey { background: #95a5a6; }
 
-.heatmap {
-  margin-top: 10px;
-  display: grid;
-  grid-template-columns: repeat(30, 10px);
-  gap: 4px;
-  justify-content: center;
-}
-
-.heat {
-  width: 10px;
-  height: 10px;
-  border-radius: 2px;
-  background: #ccc;
-}
-
 .popup {
   position: fixed;
   inset: 0;
@@ -114,11 +99,8 @@ input[type="date"] {
   margin-top: 10px;
 }
 
-/* 🔑 FIX CLICK ISSUE */
-.popup,
-.popup * {
-  pointer-events: auto !important;
-}
+/* IMPORTANT: pastikan click boleh */
+.popup, .popup * { pointer-events: auto; }
 
 .btn {
   padding: 10px;
@@ -143,6 +125,18 @@ input[type="date"] {
   background: #bbb;
   cursor: pointer;
 }
+
+/* DEBUG PANEL */
+.debug {
+  margin-top: 20px;
+  background: #111;
+  color: #0f0;
+  padding: 10px;
+  border-radius: 10px;
+  font-size: 12px;
+  max-height: 200px;
+  overflow-y: auto;
+}
 </style>
 </head>
 
@@ -165,6 +159,10 @@ input[type="date"] {
 
   <h3>Status Setahun</h3>
   <div id="heatmap" class="heatmap"></div>
+
+  <!-- DEBUG -->
+  <h3>Debug Log</h3>
+  <div id="debug" class="debug"></div>
 </div>
 
 <div id="popup" class="popup hidden">
@@ -181,89 +179,77 @@ input[type="date"] {
 </div>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbzFBjzszIHx3rSfsepgm3uJnCEFlGrgcc_AnEOBLC6eMfHf-gfxZiRJ3Gh58P2BfY6E/exec";
+const API = "https://script.google.com/macros/s/AKfycbwZQZwtD7RM2FYFfMojjiYKm-oAWIrajB8SuyMwYwOFi8yXLwbb_geuzClgRXBQA4hT/exec";
 
 let selectedSolat = null;
 let selectedDate = null;
 
+function log(msg) {
+  const box = document.getElementById("debug");
+  box.innerHTML += `[${new Date().toLocaleTimeString()}] ${msg}<br>`;
+  box.scrollTop = box.scrollHeight;
+}
+
+log("JS loaded");
+
 const labels = ["Tak Solat","Lewat","Awal","Jemaah","Belum"];
 const colors = ["red","yellow","green","gold","grey"];
 
-function prettyDate(d) {
-  const dt = new Date(d);
-  document.getElementById("prettyDate").innerText =
-    dt.toLocaleDateString("ms-MY", { weekday:"long", year:"numeric", month:"long", day:"numeric" });
-}
-
 function updatePill(solat, val) {
+  log(`updatePill(${solat}, ${val})`);
   const el = document.getElementById(solat+"-pill");
   el.textContent = labels[val] ?? "Belum";
   el.className = "pill " + (colors[val] ?? "grey");
 }
 
 function openPopup(solat) {
+  log(`openPopup(${solat})`);
   selectedSolat = solat;
   document.getElementById("popup-title").innerText = solat.toUpperCase()+" — "+selectedDate;
   document.getElementById("popup").classList.remove("hidden");
 }
 
 function closePopup() {
+  log("closePopup()");
   document.getElementById("popup").classList.add("hidden");
 }
 
 async function submitSolat(value) {
-  await fetch(API+"?mode=ensure&date="+selectedDate);
-  await fetch(API,{
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body: JSON.stringify({ date:selectedDate, solat:selectedSolat, value })
-  });
-  updatePill(selectedSolat,value);
-  closePopup();
-  loadHeatmap();
+  log(`submitSolat(${value})`);
+  try {
+    const res = await fetch(API, {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ date:selectedDate, solat:selectedSolat, value })
+    });
+    const txt = await res.text();
+    log("API response: " + txt);
+    updatePill(selectedSolat,value);
+    closePopup();
+  } catch (e) {
+    log("ERROR: " + e.message);
+  }
 }
 
-async function loadDay(date) {
-  const r = await fetch(API+"?mode=detail&date="+date);
-  const d = await r.json();
-  updatePill("subuh",d.subuh);
-  updatePill("zohor",d.zohor);
-  updatePill("asar",d.asar);
-  updatePill("maghrib",d.maghrib);
-  updatePill("isyak",d.isyak);
+function todayISO() {
+  return new Date().toISOString().slice(0,10);
 }
 
-async function loadHeatmap() {
-  const r = await fetch(API+"?mode=summary");
-  const data = await r.json();
-  const box = document.getElementById("heatmap");
-  box.innerHTML="";
-  data.days.forEach(day=>{
-    const div=document.createElement("div");
-    div.className="heat";
-    div.style.background = day.status===0?"#e63946":day.status===1?"#ffca3a":day.status===2?"#2ecc71":"#ccc";
-    box.appendChild(div);
-  });
+function prettyDate(d) {
+  document.getElementById("prettyDate").innerText =
+    new Date(d).toLocaleDateString("ms-MY",{weekday:"long",year:"numeric",month:"long",day:"numeric"});
 }
 
-async function setDate(d) {
-  selectedDate=d;
-  document.getElementById("pickDate").value=d;
+function setDate(d) {
+  log("setDate " + d);
+  selectedDate = d;
+  document.getElementById("pickDate").value = d;
   prettyDate(d);
-  await fetch(API+"?mode=ensure&date="+d);
-  await loadDay(d);
 }
 
-function todayISO(){ return new Date().toISOString().slice(0,10); }
-
-document.getElementById("pickDate").addEventListener("change",e=>setDate(e.target.value));
+document.getElementById("pickDate").addEventListener("change", e => setDate(e.target.value));
 
 setDate(todayISO());
-loadHeatmap();
-
-window.openPopup=openPopup;
-window.closePopup=closePopup;
-window.submitSolat=submitSolat;
 </script>
 </body>
 </html>
