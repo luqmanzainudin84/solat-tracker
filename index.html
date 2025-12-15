@@ -11,40 +11,31 @@ body {
   font-family: Arial, sans-serif;
   background: #f2f2f2;
 }
-
 .container {
   max-width: 420px;
   margin: 20px auto;
   padding: 10px;
 }
-
 h2 {
   text-align: center;
 }
-
 .date {
   text-align: center;
   font-size: 14px;
   margin-bottom: 10px;
 }
-
 .card {
   background: #fff;
   border-radius: 10px;
   padding: 10px;
 }
-
 .row {
   display: flex;
   justify-content: space-between;
   padding: 10px;
   border-bottom: 1px solid #eee;
 }
-
-.row:last-child {
-  border-bottom: none;
-}
-
+.row:last-child { border-bottom: none; }
 .pill {
   padding: 6px 14px;
   border-radius: 12px;
@@ -52,14 +43,12 @@ h2 {
   color: #fff;
   cursor: pointer;
 }
-
 .grey { background: #9e9e9e; }
 .red { background: #e53935; }
 .yellow { background: #fbc02d; color:#000; }
 .green { background: #43a047; }
 .gold { background: #fdd835; color:#000; }
 
-/* Popup */
 .popup {
   position: fixed;
   inset: 0;
@@ -68,11 +57,7 @@ h2 {
   justify-content: center;
   align-items: center;
 }
-
-.popup.hidden {
-  display: none;
-}
-
+.popup.hidden { display: none; }
 .popup-box {
   background: #fff;
   padding: 15px;
@@ -80,18 +65,11 @@ h2 {
   width: 90%;
   max-width: 340px;
 }
-
-.popup-box h3 {
-  text-align: center;
-  margin-top: 0;
-}
-
 .popup-buttons {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
 }
-
 .popup-buttons button {
   padding: 10px;
   border: none;
@@ -99,14 +77,12 @@ h2 {
   font-size: 14px;
   cursor: pointer;
 }
-
 .cancel {
   margin-top: 10px;
   width: 100%;
   background: #ccc;
 }
 
-/* Debug */
 .debug {
   margin-top: 15px;
   background: #111;
@@ -137,18 +113,15 @@ h2 {
   <div id="debug" class="debug"></div>
 </div>
 
-<!-- POPUP -->
 <div id="popup" class="popup hidden">
   <div class="popup-box">
     <h3 id="popupTitle"></h3>
-
     <div class="popup-buttons">
       <button class="red" onclick="submit(0)">✖ Tak Solat</button>
       <button class="yellow" onclick="submit(1)">⏱ Lewat</button>
       <button class="green" onclick="submit(2)">✔ Awal</button>
       <button class="gold" onclick="submit(3)">⭐ Jemaah</button>
     </div>
-
     <button class="cancel" onclick="closePopup()">Cancel</button>
   </div>
 </div>
@@ -162,51 +135,44 @@ let today = new Date().toISOString().slice(0,10);
 const labels = ["Tak Solat","Lewat","Awal","Jemaah","Belum"];
 const colors = ["red","yellow","green","gold","grey"];
 
-function log(msg) {
-  const d = document.getElementById("debug");
-  d.innerHTML += `[${new Date().toLocaleTimeString()}] ${msg}<br>`;
-  d.scrollTop = d.scrollHeight;
+function log(msg){
+  const d=document.getElementById("debug");
+  d.innerHTML+=`[${new Date().toLocaleTimeString()}] ${msg}<br>`;
+  d.scrollTop=d.scrollHeight;
 }
 
 document.getElementById("dateText").innerText =
   new Date().toLocaleDateString("ms-MY",{weekday:"long",year:"numeric",month:"long",day:"numeric"});
 
-function openPopup(solat) {
-  log("openPopup: " + solat);
-  selectedSolat = solat;
-  document.getElementById("popupTitle").innerText = solat.toUpperCase();
+function openPopup(s){
+  selectedSolat=s;
+  log("openPopup "+s);
+  document.getElementById("popupTitle").innerText=s.toUpperCase();
   document.getElementById("popup").classList.remove("hidden");
 }
 
-function closePopup() {
+function closePopup(){
   log("closePopup");
   document.getElementById("popup").classList.add("hidden");
 }
 
-function updatePill(solat, val) {
-  const el = document.getElementById(solat);
-  el.textContent = labels[val];
-  el.className = "pill " + colors[val];
+function updatePill(s,v){
+  const el=document.getElementById(s);
+  el.textContent=labels[v];
+  el.className="pill "+colors[v];
 }
 
-async function submit(val) {
-  log("submit: " + selectedSolat + " = " + val);
-  try {
-    const res = await fetch(API,{
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({
-        date: today,
-        solat: selectedSolat,
-        value: val
-      })
-    });
-    const t = await res.text();
-    log("API: " + t);
-    updatePill(selectedSolat,val);
+async function submit(v){
+  log(`submit ${selectedSolat}=${v}`);
+  const url = `${API}?mode=update&date=${today}&solat=${selectedSolat}&value=${v}`;
+  try{
+    const r = await fetch(url);
+    const t = await r.text();
+    log("API OK: "+t);
+    updatePill(selectedSolat,v);
     closePopup();
-  } catch(e) {
-    log("ERROR: " + e.message);
+  }catch(e){
+    log("ERROR "+e.message);
   }
 }
 
