@@ -1,255 +1,217 @@
 <!DOCTYPE html>
 <html lang="ms">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Solat Tracker</title>
 
 <style>
 body {
   margin: 0;
-  padding: 0;
-  background: #f2f2f2;
   font-family: Arial, sans-serif;
+  background: #f2f2f2;
 }
 
 .container {
-  width: 92%;
-  max-width: 520px;
+  max-width: 420px;
   margin: 20px auto;
+  padding: 10px;
 }
 
-h2, h3 {
+h2 {
   text-align: center;
 }
 
-.sub {
+.date {
   text-align: center;
-  font-size: 13px;
-  margin-bottom: 12px;
-}
-
-.topbar {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 12px;
-}
-
-input[type="date"] {
-  padding: 8px 10px;
-  border-radius: 10px;
-  border: 1px solid #ccc;
+  font-size: 14px;
+  margin-bottom: 10px;
 }
 
 .card {
   background: #fff;
-  padding: 14px;
-  border-radius: 14px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  border-radius: 10px;
+  padding: 10px;
 }
 
 .row {
   display: flex;
   justify-content: space-between;
-  padding: 10px 0;
+  padding: 10px;
   border-bottom: 1px solid #eee;
 }
 
-.row:last-child { border-bottom: none; }
+.row:last-child {
+  border-bottom: none;
+}
 
 .pill {
   padding: 6px 14px;
-  border-radius: 14px;
+  border-radius: 12px;
   font-size: 13px;
-  cursor: pointer;
   color: #fff;
-  user-select: none;
+  cursor: pointer;
 }
 
-.red { background: #e63946; }
-.yellow { background: #ffca3a; color:#000; }
-.green { background: #2ecc71; }
-.gold { background: #f1c40f; color:#000; }
-.grey { background: #95a5a6; }
+.grey { background: #9e9e9e; }
+.red { background: #e53935; }
+.yellow { background: #fbc02d; color:#000; }
+.green { background: #43a047; }
+.gold { background: #fdd835; color:#000; }
 
+/* Popup */
 .popup {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.6);
+  background: rgba(0,0,0,.6);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 9999;
 }
 
-.hidden { display: none; }
+.popup.hidden {
+  display: none;
+}
 
 .popup-box {
   background: #fff;
-  padding: 18px;
-  border-radius: 14px;
+  padding: 15px;
+  border-radius: 10px;
   width: 90%;
-  max-width: 380px;
+  max-width: 340px;
 }
 
-.popup-row {
+.popup-box h3 {
+  text-align: center;
+  margin-top: 0;
+}
+
+.popup-buttons {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-top: 10px;
+  gap: 8px;
 }
 
-/* IMPORTANT: pastikan click boleh */
-.popup, .popup * { pointer-events: auto; }
-
-.btn {
+.popup-buttons button {
   padding: 10px;
   border: none;
-  border-radius: 10px;
+  border-radius: 8px;
   font-size: 14px;
   cursor: pointer;
-  color: #fff;
 }
 
-.btn.red { background:#e63946; }
-.btn.yellow { background:#ffca3a; color:#000; }
-.btn.green { background:#2ecc71; }
-.btn.gold { background:#f1c40f; color:#000; }
-
-.cancel-btn {
-  margin-top: 12px;
+.cancel {
+  margin-top: 10px;
   width: 100%;
-  padding: 10px;
-  border: none;
-  border-radius: 10px;
-  background: #bbb;
-  cursor: pointer;
+  background: #ccc;
 }
 
-/* DEBUG PANEL */
+/* Debug */
 .debug {
-  margin-top: 20px;
+  margin-top: 15px;
   background: #111;
   color: #0f0;
-  padding: 10px;
-  border-radius: 10px;
-  font-size: 12px;
-  max-height: 200px;
+  padding: 8px;
+  font-size: 11px;
+  border-radius: 6px;
+  max-height: 160px;
   overflow-y: auto;
 }
 </style>
 </head>
 
 <body>
+
 <div class="container">
   <h2>Solat Tracker</h2>
-  <div class="sub" id="prettyDate"></div>
-
-  <div class="topbar">
-    <input type="date" id="pickDate">
-  </div>
+  <div id="dateText" class="date"></div>
 
   <div class="card">
-    <div class="row"><span>Subuh</span><span id="subuh-pill" class="pill grey" onclick="openPopup('subuh')">Belum</span></div>
-    <div class="row"><span>Zohor</span><span id="zohor-pill" class="pill grey" onclick="openPopup('zohor')">Belum</span></div>
-    <div class="row"><span>Asar</span><span id="asar-pill" class="pill grey" onclick="openPopup('asar')">Belum</span></div>
-    <div class="row"><span>Maghrib</span><span id="maghrib-pill" class="pill grey" onclick="openPopup('maghrib')">Belum</span></div>
-    <div class="row"><span>Isyak</span><span id="isyak-pill" class="pill grey" onclick="openPopup('isyak')">Belum</span></div>
+    <div class="row"><span>Subuh</span><span class="pill grey" onclick="openPopup('subuh')" id="subuh">Belum</span></div>
+    <div class="row"><span>Zohor</span><span class="pill grey" onclick="openPopup('zohor')" id="zohor">Belum</span></div>
+    <div class="row"><span>Asar</span><span class="pill grey" onclick="openPopup('asar')" id="asar">Belum</span></div>
+    <div class="row"><span>Maghrib</span><span class="pill grey" onclick="openPopup('maghrib')" id="maghrib">Belum</span></div>
+    <div class="row"><span>Isyak</span><span class="pill grey" onclick="openPopup('isyak')" id="isyak">Belum</span></div>
   </div>
 
-  <h3>Status Setahun</h3>
-  <div id="heatmap" class="heatmap"></div>
-
-  <!-- DEBUG -->
-  <h3>Debug Log</h3>
   <div id="debug" class="debug"></div>
 </div>
 
+<!-- POPUP -->
 <div id="popup" class="popup hidden">
   <div class="popup-box">
-    <h3 id="popup-title"></h3>
-    <div class="popup-row">
-      <button class="btn red" onclick="submitSolat(0)">✖ Tak Solat</button>
-      <button class="btn yellow" onclick="submitSolat(1)">⏱ Lewat</button>
-      <button class="btn green" onclick="submitSolat(2)">✔ Awal</button>
-      <button class="btn gold" onclick="submitSolat(3)">⭐ Jemaah</button>
+    <h3 id="popupTitle"></h3>
+
+    <div class="popup-buttons">
+      <button class="red" onclick="submit(0)">✖ Tak Solat</button>
+      <button class="yellow" onclick="submit(1)">⏱ Lewat</button>
+      <button class="green" onclick="submit(2)">✔ Awal</button>
+      <button class="gold" onclick="submit(3)">⭐ Jemaah</button>
     </div>
-    <button class="cancel-btn" onclick="closePopup()">Cancel</button>
+
+    <button class="cancel" onclick="closePopup()">Cancel</button>
   </div>
 </div>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbwZQZwtD7RM2FYFfMojjiYKm-oAWIrajB8SuyMwYwOFi8yXLwbb_geuzClgRXBQA4hT/exec";
+const API = "https://script.google.com/macros/s/AKfycbzFBjzszIHx3rSfsepgm3uJnCEFlGrgcc_AnEOBLC6eMfHf-gfxZiRJ3Gh58P2BfY6E/exec";
 
 let selectedSolat = null;
-let selectedDate = null;
-
-function log(msg) {
-  const box = document.getElementById("debug");
-  box.innerHTML += `[${new Date().toLocaleTimeString()}] ${msg}<br>`;
-  box.scrollTop = box.scrollHeight;
-}
-
-log("JS loaded");
+let today = new Date().toISOString().slice(0,10);
 
 const labels = ["Tak Solat","Lewat","Awal","Jemaah","Belum"];
 const colors = ["red","yellow","green","gold","grey"];
 
-function updatePill(solat, val) {
-  log(`updatePill(${solat}, ${val})`);
-  const el = document.getElementById(solat+"-pill");
-  el.textContent = labels[val] ?? "Belum";
-  el.className = "pill " + (colors[val] ?? "grey");
+function log(msg) {
+  const d = document.getElementById("debug");
+  d.innerHTML += `[${new Date().toLocaleTimeString()}] ${msg}<br>`;
+  d.scrollTop = d.scrollHeight;
 }
 
+document.getElementById("dateText").innerText =
+  new Date().toLocaleDateString("ms-MY",{weekday:"long",year:"numeric",month:"long",day:"numeric"});
+
 function openPopup(solat) {
-  log(`openPopup(${solat})`);
+  log("openPopup: " + solat);
   selectedSolat = solat;
-  document.getElementById("popup-title").innerText = solat.toUpperCase()+" — "+selectedDate;
+  document.getElementById("popupTitle").innerText = solat.toUpperCase();
   document.getElementById("popup").classList.remove("hidden");
 }
 
 function closePopup() {
-  log("closePopup()");
+  log("closePopup");
   document.getElementById("popup").classList.add("hidden");
 }
 
-async function submitSolat(value) {
-  log(`submitSolat(${value})`);
+function updatePill(solat, val) {
+  const el = document.getElementById(solat);
+  el.textContent = labels[val];
+  el.className = "pill " + colors[val];
+}
+
+async function submit(val) {
+  log("submit: " + selectedSolat + " = " + val);
   try {
-    const res = await fetch(API, {
+    const res = await fetch(API,{
       method:"POST",
       headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify({ date:selectedDate, solat:selectedSolat, value })
+      body: JSON.stringify({
+        date: today,
+        solat: selectedSolat,
+        value: val
+      })
     });
-    const txt = await res.text();
-    log("API response: " + txt);
-    updatePill(selectedSolat,value);
+    const t = await res.text();
+    log("API: " + t);
+    updatePill(selectedSolat,val);
     closePopup();
-  } catch (e) {
+  } catch(e) {
     log("ERROR: " + e.message);
   }
 }
 
-function todayISO() {
-  return new Date().toISOString().slice(0,10);
-}
-
-function prettyDate(d) {
-  document.getElementById("prettyDate").innerText =
-    new Date(d).toLocaleDateString("ms-MY",{weekday:"long",year:"numeric",month:"long",day:"numeric"});
-}
-
-function setDate(d) {
-  log("setDate " + d);
-  selectedDate = d;
-  document.getElementById("pickDate").value = d;
-  prettyDate(d);
-}
-
-document.getElementById("pickDate").addEventListener("change", e => setDate(e.target.value));
-
-setDate(todayISO());
+log("JS loaded OK");
 </script>
+
 </body>
 </html>
