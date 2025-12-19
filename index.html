@@ -1,644 +1,318 @@
 <!DOCTYPE html>
 <html lang="ms">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Solat Tracker</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Solat Tracker</title>
 
-  <style>
-    :root{
-      --bg:#f2f2f2;
-      --card:#ffffff;
-      --text:#111;
-      --muted:#666;
-      --line:#e9e9e9;
+<style>
+:root{
+  --bg:#f2f2f2;
+  --card:#fff;
+  --line:#eaeaea;
+  --shadow:0 2px 10px rgba(0,0,0,.08);
 
-      --red:#e53935;
-      --yellow:#fbc02d;
-      --green:#43a047;
-      --gold:#fdd835;
-      --grey:#9e9e9e;
+  --red:#e53935;
+  --yellow:#fbc02d;
+  --green:#43a047;
+  --gold:#fdd835;
+  --grey:#9e9e9e;
+}
 
-      --shadow: 0 2px 10px rgba(0,0,0,.08);
-      --radius: 14px;
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+  background:var(--bg);
+}
 
-      --debugH: 140px;
-    }
+.wrap{
+  max-width:520px;
+  margin:18px auto;
+  padding:0 14px 20px;
+}
 
-    *{ box-sizing:border-box; }
-    body{
-      margin:0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      padding-bottom: calc(var(--debugH) + 16px); /* elak debug cover content */
-    }
+h2{
+  text-align:center;
+  margin:8px 0 4px;
+}
+#prettyDate{
+  text-align:center;
+  color:#666;
+  margin-bottom:10px;
+}
 
-    .wrap{
-      max-width: 520px;
-      margin: 18px auto;
-      padding: 0 14px 18px;
-    }
+/* ===== DAILY CARD ===== */
+.card{
+  background:var(--card);
+  border-radius:14px;
+  box-shadow:var(--shadow);
+  overflow:hidden;
+}
+.row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:14px;
+  border-bottom:1px solid var(--line);
+}
+.row:last-child{border-bottom:none;}
+.name{font-weight:700;}
+.pill{
+  min-width:86px;
+  text-align:center;
+  padding:6px 14px;
+  border-radius:999px;
+  color:#fff;
+  font-size:13px;
+  font-weight:800;
+  cursor:pointer;
+}
+.grey{background:var(--grey);}
+.red{background:var(--red);}
+.yellow{background:var(--yellow);color:#000;}
+.green{background:var(--green);}
+.jemaah{
+  background:var(--green);
+  position:relative;
+}
+.jemaah::after{
+  content:"";
+  position:absolute;
+  left:10px;right:10px;bottom:4px;
+  height:3px;
+  background:var(--gold);
+  border-radius:99px;
+}
 
-    .title{
-      text-align:center;
-      font-size: 26px;
-      font-weight: 800;
-      margin: 6px 0 6px;
-      letter-spacing:.2px;
-    }
+/* ===== HEATMAP CARD ===== */
+.hm-card{
+  margin-top:14px;
+  background:var(--card);
+  border-radius:14px;
+  box-shadow:var(--shadow);
+  padding:10px 10px 12px;
+}
+.hm-title{
+  font-weight:800;
+  font-size:14px;
+  margin:2px 4px 8px;
+}
+.hm-wrap{
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+}
+.hm-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(28px,1fr));
+  gap:6px;
+}
+.hm-col{
+  display:grid;
+  grid-template-rows:repeat(5,28px);
+  gap:6px;
+}
+.hm-cell{
+  width:28px;
+  height:28px;
+  border-radius:6px;
+  background:#eee;
+  cursor:pointer;
+}
+.hm-cell.red{background:var(--red);}
+.hm-cell.yellow{background:var(--yellow);}
+.hm-cell.green{background:var(--green);}
+.hm-cell.grey{background:#ddd;}
+.hm-cell.jemaah{
+  background:var(--green);
+  position:relative;
+}
+.hm-cell.jemaah::after{
+  content:"";
+  position:absolute;
+  left:4px;right:4px;bottom:3px;
+  height:3px;
+  background:var(--gold);
+  border-radius:99px;
+}
+.hm-labels{
+  display:grid;
+  grid-template-rows:repeat(5,28px);
+  gap:6px;
+  margin-right:8px;
+}
+.hm-labels div{
+  font-size:12px;
+  color:#555;
+  display:flex;
+  align-items:center;
+}
 
-    .subtitle{
-      text-align:center;
-      margin: 0 0 14px;
-      color: var(--muted);
-      font-size: 14px;
-    }
-
-    /* Month bar */
-    .monthbar{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap: 10px;
-      background: var(--card);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 10px 12px;
-      margin-bottom: 10px;
-    }
-
-    .mb-btn{
-      border:none;
-      background:#f7f7f7;
-      border-radius: 12px;
-      padding: 8px 12px;
-      font-size: 16px;
-      cursor:pointer;
-      min-width: 44px;
-      user-select:none;
-    }
-    .mb-btn:active{ transform: scale(.98); }
-
-    .monthtext{
-      text-align:center;
-      flex:1;
-      font-weight:800;
-      font-size: 16px;
-      letter-spacing:.2px;
-    }
-
-    /* Date scroller */
-    .datestrip{
-      background: var(--card);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 10px 10px;
-      margin-bottom: 14px;
-
-      overflow-x: auto;
-      white-space: nowrap;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    .datechip{
-      display:inline-flex;
-      flex-direction: column;
-      align-items:center;
-      justify-content:center;
-
-      width: 54px;
-      height: 54px;
-      margin-right: 8px;
-
-      border-radius: 14px;
-      background: #f7f7f7;
-      border: 1px solid #efefef;
-
-      cursor:pointer;
-      user-select:none;
-    }
-
-    .datechip .dow{
-      font-size: 11px;
-      color: var(--muted);
-      line-height: 1.1;
-    }
-
-    .datechip .dom{
-      font-size: 18px;
-      font-weight: 900;
-      line-height: 1.1;
-      margin-top: 2px;
-    }
-
-    .datechip.active{
-      background: #111;
-      border-color: #111;
-      color: #fff;
-    }
-    .datechip.active .dow{ color: #ddd; }
-
-    /* Table card */
-    .tableCard{
-      background: var(--card);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      overflow: hidden;
-    }
-
-    .tableHeader{
-      padding: 12px 14px;
-      border-bottom: 1px solid var(--line);
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap: 10px;
-    }
-
-    .tableHeader .hleft{
-      display:flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-    .tableHeader .hleft .h1{
-      font-weight: 900;
-      font-size: 16px;
-    }
-    .tableHeader .hleft .h2{
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    .hint{
-      font-size: 12px;
-      color: var(--muted);
-      text-align:right;
-      line-height: 1.2;
-    }
-
-    .tableWrap{
-      max-height: 320px;      /* boleh scroll table */
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    .row{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      padding: 14px 14px;
-      border-bottom: 1px solid var(--line);
-    }
-    .row:last-child{ border-bottom:none; }
-
-    .row .name{
-      font-size: 16px;
-      font-weight: 700;
-    }
-
-    .pill{
-      padding: 7px 14px;
-      border-radius: 999px;
-      font-size: 13px;
-      font-weight: 800;
-      cursor:pointer;
-      user-select:none;
-      min-width: 86px;
-      text-align:center;
-    }
-
-    .p-grey{ background: var(--grey); color:#fff; }
-    .p-red{ background: var(--red); color:#fff; }
-    .p-yellow{ background: var(--yellow); color:#111; }
-    .p-green{ background: var(--green); color:#fff; }
-    .p-gold{ background: var(--gold); color:#111; }
-
-    /* Jemaah style: hijau + underline gold */
-    .jemaah{
-      background: var(--green);
-      color: #fff;
-      position: relative;
-    }
-    .jemaah::after{
-      content:"";
-      position:absolute;
-      left: 10px;
-      right: 10px;
-      bottom: 4px;
-      height: 3px;
-      background: var(--gold);
-      border-radius: 99px;
-    }
-
-    /* Popup */
-    .overlay{
-      position:fixed;
-      inset:0;
-      background: rgba(0,0,0,.55);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      z-index: 1000;
-      padding: 18px;
-    }
-    .hidden{ display:none; }
-
-    .popup{
-      width: min(420px, 100%);
-      background: var(--card);
-      border-radius: 18px;
-      box-shadow: 0 20px 60px rgba(0,0,0,.25);
-      padding: 14px;
-    }
-    .popTitle{
-      margin: 6px 6px 10px;
-      font-size: 18px;
-      font-weight: 1000;
-      letter-spacing:.2px;
-      display:flex;
-      align-items:baseline;
-      justify-content:space-between;
-      gap:10px;
-    }
-    .popTitle small{
-      color: var(--muted);
-      font-weight: 700;
-      font-size: 12px;
-      white-space: nowrap;
-    }
-    .popGrid{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      padding: 6px;
-    }
-    .btn{
-      border:none;
-      border-radius: 14px;
-      padding: 12px 10px;
-      font-weight: 900;
-      font-size: 14px;
-      cursor:pointer;
-      user-select:none;
-    }
-    .btn:active{ transform: scale(.99); }
-    .btn.red{ background: var(--red); color:#fff; }
-    .btn.yellow{ background: var(--yellow); color:#111; }
-    .btn.green{ background: var(--green); color:#fff; }
-    .btn.gold{ background: var(--gold); color:#111; }
-    .btn.cancel{
-      width: calc(100% - 12px);
-      margin: 8px 6px 6px;
-      background: #d6d6d6;
-      color:#111;
-    }
-
-    /* Debug bottom drawer */
-    #debugLog{
-      position: fixed;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      height: var(--debugH);
-      background: #0b0b0b;
-      color: #00ff66;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-      font-size: 12px;
-      padding: 10px 12px;
-      overflow-y: auto;
-      z-index: 2000;
-      border-top: 1px solid #1f1f1f;
-    }
-    #debugLog .dim{ color: #9affc2; opacity:.8; }
-  </style>
+/* ===== POPUP ===== */
+.overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.55);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  z-index:999;
+}
+.hidden{display:none;}
+.popup{
+  background:#fff;
+  border-radius:16px;
+  width:90%;
+  max-width:360px;
+  padding:14px;
+}
+.pop-title{
+  font-weight:900;
+  margin-bottom:10px;
+}
+.pop-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.btn{
+  padding:10px;
+  border:none;
+  border-radius:12px;
+  font-weight:800;
+  cursor:pointer;
+}
+.btn.red{background:var(--red);color:#fff;}
+.btn.yellow{background:var(--yellow);}
+.btn.green{background:var(--green);color:#fff;}
+.btn.gold{background:var(--gold);}
+.btn.cancel{
+  width:100%;
+  margin-top:10px;
+  background:#ccc;
+}
+</style>
 </head>
 
 <body>
-  <div class="wrap">
-    <div class="title">Solat Tracker</div>
-    <div id="prettyDate" class="subtitle">—</div>
+<div class="wrap">
+  <h2>Solat Tracker</h2>
+  <div id="prettyDate"></div>
 
-    <div class="monthbar">
-      <button class="mb-btn" id="prevMonth" aria-label="Bulan sebelumnya">‹</button>
-      <div class="monthtext" id="monthText">—</div>
-      <button class="mb-btn" id="nextMonth" aria-label="Bulan seterusnya">›</button>
-    </div>
+  <!-- DAILY -->
+  <div class="card" id="dailyCard"></div>
 
-    <div class="datestrip" id="dateStrip" aria-label="Pilih tarikh"></div>
-
-    <div class="tableCard">
-      <div class="tableHeader">
-        <div class="hleft">
-          <div class="h1">Status Harian</div>
-          <div class="h2" id="isoText">—</div>
-        </div>
-        <div class="hint">Tap status untuk ubah<br><span class="dim">(* table boleh scroll)</span></div>
+  <!-- HEATMAP -->
+  <div class="hm-card">
+    <div class="hm-title">Heatmap Bulan Ini</div>
+    <div style="display:flex">
+      <div class="hm-labels">
+        <div>Subuh</div>
+        <div>Zohor</div>
+        <div>Asar</div>
+        <div>Magh</div>
+        <div>Isyak</div>
       </div>
-
-      <div class="tableWrap" id="tableWrap">
-        <div class="row">
-          <div class="name">Subuh</div>
-          <div class="pill p-grey" id="pill-subuh" data-solat="subuh">Belum</div>
-        </div>
-        <div class="row">
-          <div class="name">Zohor</div>
-          <div class="pill p-grey" id="pill-zohor" data-solat="zohor">Belum</div>
-        </div>
-        <div class="row">
-          <div class="name">Asar</div>
-          <div class="pill p-grey" id="pill-asar" data-solat="asar">Belum</div>
-        </div>
-        <div class="row">
-          <div class="name">Maghrib</div>
-          <div class="pill p-grey" id="pill-maghrib" data-solat="maghrib">Belum</div>
-        </div>
-        <div class="row">
-          <div class="name">Isyak</div>
-          <div class="pill p-grey" id="pill-isyak" data-solat="isyak">Belum</div>
-        </div>
+      <div class="hm-wrap">
+        <div class="hm-grid" id="heatmap"></div>
       </div>
     </div>
   </div>
+</div>
 
-  <!-- Popup -->
-  <div class="overlay hidden" id="overlay">
-    <div class="popup">
-      <div class="popTitle">
-        <div id="popSolat">—</div>
-        <small id="popDate">—</small>
-      </div>
-
-      <div class="popGrid">
-        <button class="btn red" onclick="setStatus(0)">✖ Tak Solat</button>
-        <button class="btn yellow" onclick="setStatus(1)">⏱ Lewat</button>
-        <button class="btn green" onclick="setStatus(2)">✔ Awal</button>
-        <button class="btn gold" onclick="setStatus(3)">⭐ Jemaah</button>
-      </div>
-
-      <button class="btn cancel" onclick="closePopup()">Cancel</button>
+<!-- POPUP -->
+<div class="overlay hidden" id="overlay">
+  <div class="popup">
+    <div class="pop-title" id="popTitle"></div>
+    <div class="pop-grid">
+      <button class="btn red" onclick="setVal(0)">Tak Solat</button>
+      <button class="btn yellow" onclick="setVal(1)">Lewat</button>
+      <button class="btn green" onclick="setVal(2)">Awal</button>
+      <button class="btn gold" onclick="setVal(3)">Jemaah</button>
     </div>
+    <button class="btn cancel" onclick="closePop()">Cancel</button>
   </div>
+</div>
 
-  <!-- Debug -->
-  <div id="debugLog"></div>
+<script>
+const API = "https://script.google.com/macros/s/AKfycbwRxMoxud-Rsn__BoiKQyOtPc9M0n-Q-gCUmDFVkUhUmSXdCyagCb5JruxUEDzA8ulq/exec";
+const PRAYERS=["subuh","zohor","asar","maghrib","isyak"];
+const LABEL={subuh:"Subuh",zohor:"Zohor",asar:"Asar",maghrib:"Maghrib",isyak:"Isyak"};
 
-  <script>
-    // =========================
-    // CONFIG: PASTE YOUR WEB APP URL
-    // =========================
-    const API = "https://script.google.com/macros/s/AKfycbwRxMoxud-Rsn__BoiKQyOtPc9M0n-Q-gCUmDFVkUhUmSXdCyagCb5JruxUEDzA8ulq/exec"; // contoh: https://script.google.com/macros/s/XXXX/exec
+let curDate=new Date();
+let selDateISO=iso(curDate);
+let selSolat=null;
 
-    // =========================
-    // STATE
-    // =========================
-    const PRAYERS = ["subuh","zohor","asar","maghrib","isyak"];
-    const PRAYER_LABEL = { subuh:"Subuh", zohor:"Zohor", asar:"Asar", maghrib:"Maghrib", isyak:"Isyak" };
+/* ===== helpers ===== */
+function iso(d){
+  return d.toISOString().slice(0,10);
+}
+function pretty(d){
+  return d.toLocaleDateString("ms-MY",{weekday:"long",year:"numeric",month:"long",day:"numeric"});
+}
 
-    // 0 Tak Solat, 1 Lewat, 2 Awal, 3 Jemaah, 4 Belum
-    const LABELS = ["Tak Solat","Lewat","Awal","Jemaah","Belum"];
+/* ===== DAILY ===== */
+async function loadDay(dateISO){
+  const r=await fetch(`${API}?mode=detail&date=${dateISO}`);
+  const d=await r.json();
+  const box=document.getElementById("dailyCard");
+  box.innerHTML="";
+  PRAYERS.forEach(p=>{
+    const v=Number(d[p]??4);
+    const pillClass = v===0?"red":v===1?"yellow":v===2?"green":v===3?"jemaah":"grey";
+    const text = v===0?"Tak":v===1?"Lewat":v===2?"Awal":v===3?"Jemaah":"Belum";
+    const row=document.createElement("div");
+    row.className="row";
+    row.innerHTML=`
+      <div class="name">${LABEL[p]}</div>
+      <div class="pill ${pillClass}" onclick="openPop('${p}','${dateISO}')">${text}</div>
+    `;
+    box.appendChild(row);
+  });
+}
 
-    let selectedSolat = null;
-    let selectedDate = new Date();        // Date object
-    let viewYear = selectedDate.getFullYear();
-    let viewMonth = selectedDate.getMonth(); // 0..11
-
-    // =========================
-    // DEBUG
-    // =========================
-    const dbg = document.getElementById("debugLog");
-    function log(msg){
-      const t = new Date().toLocaleTimeString();
-      dbg.innerHTML += `<div>[${t}] ${escapeHtml(msg)}</div>`;
-      dbg.scrollTop = dbg.scrollHeight;
-    }
-    function escapeHtml(s){
-      return String(s)
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;");
-    }
-
-    // =========================
-    // DATE HELPERS
-    // =========================
-    function pad2(n){ return String(n).padStart(2,"0"); }
-    function toISO(d){
-      const y = d.getFullYear();
-      const m = pad2(d.getMonth()+1);
-      const day = pad2(d.getDate());
-      return `${y}-${m}-${day}`;
-    }
-    function prettyFull(d){
-      return d.toLocaleDateString("ms-MY", { weekday:"long", year:"numeric", month:"long", day:"numeric" });
-    }
-    function monthTitle(y,m){
-      const d = new Date(y,m,1);
-      return d.toLocaleDateString("ms-MY", { month:"long", year:"numeric" });
-    }
-    function dowShort(d){
-      // ms-MY pendek (Isn, Sel...). iOS kadang guna 3 huruf, ok.
-      return d.toLocaleDateString("ms-MY", { weekday:"short" });
-    }
-    function daysInMonth(y,m){
-      return new Date(y,m+1,0).getDate();
-    }
-
-    // =========================
-    // UI RENDER
-    // =========================
-    const elPrettyDate = document.getElementById("prettyDate");
-    const elIsoText = document.getElementById("isoText");
-    const elMonthText = document.getElementById("monthText");
-    const elDateStrip = document.getElementById("dateStrip");
-
-    function renderHeader(){
-      elPrettyDate.textContent = prettyFull(selectedDate);
-      elIsoText.textContent = `Tarikh: ${toISO(selectedDate)}`;
-      elMonthText.textContent = monthTitle(viewYear, viewMonth);
-    }
-
-    function renderDateStrip(){
-      elDateStrip.innerHTML = "";
-      const total = daysInMonth(viewYear, viewMonth);
-      const selectedISO = toISO(selectedDate);
-
-      for(let day=1; day<=total; day++){
-        const d = new Date(viewYear, viewMonth, day);
-        const iso = toISO(d);
-
-        const chip = document.createElement("div");
-        chip.className = "datechip" + (iso === selectedISO ? " active" : "");
-        chip.dataset.iso = iso;
-
-        const dow = document.createElement("div");
-        dow.className = "dow";
-        dow.textContent = dowShort(d);
-
-        const dom = document.createElement("div");
-        dom.className = "dom";
-        dom.textContent = day;
-
-        chip.appendChild(dow);
-        chip.appendChild(dom);
-
-        chip.addEventListener("click", () => {
-          selectDate(new Date(viewYear, viewMonth, day));
-        });
-
-        elDateStrip.appendChild(chip);
-      }
-
-      // auto scroll supaya tarikh aktif nampak di tengah strip
-      requestAnimationFrame(() => {
-        const active = elDateStrip.querySelector(".datechip.active");
-        if(active){
-          const stripRect = elDateStrip.getBoundingClientRect();
-          const aRect = active.getBoundingClientRect();
-          const offset = (aRect.left - stripRect.left) - (stripRect.width/2 - aRect.width/2);
-          elDateStrip.scrollLeft += offset;
-        }
-      });
-    }
-
-    // =========================
-    // PILLS
-    // =========================
-    function setPillUI(solat, value){
-      const el = document.getElementById(`pill-${solat}`);
-      if(!el) return;
-
-      // reset
-      el.className = "pill";
-
-      if(value === 0){ el.classList.add("p-red"); el.textContent = "Tak"; }
-      else if(value === 1){ el.classList.add("p-yellow"); el.textContent = "Lewat"; }
-      else if(value === 2){ el.classList.add("p-green"); el.textContent = "Awal"; }
-      else if(value === 3){ el.classList.add("jemaah"); el.textContent = "Jemaah"; }
-      else { el.classList.add("p-grey"); el.textContent = "Belum"; }
-    }
-
-    function attachPillClicks(){
-      PRAYERS.forEach(p => {
-        const el = document.getElementById(`pill-${p}`);
-        el.addEventListener("click", () => openPopup(p));
-      });
-    }
-
-    // =========================
-    // POPUP
-    // =========================
-    const overlay = document.getElementById("overlay");
-    const popSolat = document.getElementById("popSolat");
-    const popDate = document.getElementById("popDate");
-
-    function openPopup(solat){
-      selectedSolat = solat;
-      popSolat.textContent = PRAYER_LABEL[solat].toUpperCase();
-      popDate.textContent = toISO(selectedDate);
-      overlay.classList.remove("hidden");
-      log(`openPopup: ${solat} @ ${toISO(selectedDate)}`);
-    }
-
-    function closePopup(){
-      overlay.classList.add("hidden");
-      log("closePopup");
-    }
-
-    // close popup bila tap luar kotak
-    overlay.addEventListener("click", (e) => {
-      if(e.target === overlay) closePopup();
+/* ===== HEATMAP ===== */
+async function loadHeatmap(){
+  const r=await fetch(`${API}?mode=summary`);
+  const data=(await r.json()).days||[];
+  const map=document.getElementById("heatmap");
+  map.innerHTML="";
+  data.forEach(day=>{
+    const col=document.createElement("div");
+    col.className="hm-col";
+    PRAYERS.forEach(p=>{
+      const v=day[p] ?? day.status ?? 4;
+      const c=document.createElement("div");
+      c.className="hm-cell "+
+        (v===0?"red":v===1?"yellow":v===2?"green":v===3?"jemaah":"grey");
+      c.onclick=()=>openPop(p,day.date);
+      col.appendChild(c);
     });
+    map.appendChild(col);
+  });
+}
 
-    // =========================
-    // API CALLS (GET ONLY - NO CORS POST)
-    // =========================
-    async function apiGet(url){
-      const r = await fetch(url, { method: "GET" });
-      const text = await r.text();
-      // cuba parse JSON kalau boleh
-      try { return JSON.parse(text); } catch(_){ return { raw:text }; }
-    }
+/* ===== POPUP ===== */
+function openPop(solat,dateISO){
+  selSolat=solat;
+  selDateISO=dateISO;
+  document.getElementById("popTitle").innerText=
+    `${LABEL[solat]} — ${dateISO}`;
+  document.getElementById("overlay").classList.remove("hidden");
+}
+function closePop(){
+  document.getElementById("overlay").classList.add("hidden");
+}
+async function setVal(v){
+  await fetch(`${API}?mode=update&date=${selDateISO}&solat=${selSolat}&value=${v}`);
+  closePop();
+  loadDay(selDateISO);
+  loadHeatmap();
+}
 
-    async function loadDay(dateObj){
-      const iso = toISO(dateObj);
-      const url = `${API}?mode=detail&date=${encodeURIComponent(iso)}`;
-      log(`loadDay -> ${url}`);
-
-      try{
-        const data = await apiGet(url);
-        log(`detail response: ${JSON.stringify(data)}`);
-
-        PRAYERS.forEach(p => setPillUI(p, Number(data[p] ?? 4)));
-      }catch(err){
-        log(`ERROR loadDay: ${err && err.message ? err.message : String(err)}`);
-      }
-    }
-
-    async function setStatus(value){
-      if(!selectedSolat) return;
-
-      const iso = toISO(selectedDate);
-      const url = `${API}?mode=update&date=${encodeURIComponent(iso)}&solat=${encodeURIComponent(selectedSolat)}&value=${encodeURIComponent(value)}`;
-
-      log(`update -> ${url}`);
-
-      try{
-        const data = await apiGet(url);
-        log(`update response: ${JSON.stringify(data)}`);
-
-        // update UI segera
-        setPillUI(selectedSolat, value);
-        closePopup();
-
-      }catch(err){
-        log(`ERROR update: ${err && err.message ? err.message : String(err)}`);
-      }
-    }
-
-    // =========================
-    // DATE / MONTH NAVIGATION
-    // =========================
-    function selectDate(d){
-      selectedDate = d;
-      viewYear = d.getFullYear();
-      viewMonth = d.getMonth();
-
-      renderHeader();
-      renderDateStrip();
-      loadDay(selectedDate);
-      log(`selectDate: ${toISO(selectedDate)}`);
-    }
-
-    function changeMonth(delta){
-      const d = new Date(viewYear, viewMonth + delta, 1);
-      viewYear = d.getFullYear();
-      viewMonth = d.getMonth();
-
-      // kalau selectedDate bukan dalam bulan view, set ke 1hb
-      selectedDate = new Date(viewYear, viewMonth, 1);
-
-      renderHeader();
-      renderDateStrip();
-      loadDay(selectedDate);
-      log(`changeMonth: ${monthTitle(viewYear, viewMonth)}`);
-    }
-
-    document.getElementById("prevMonth").addEventListener("click", ()=> changeMonth(-1));
-    document.getElementById("nextMonth").addEventListener("click", ()=> changeMonth(1));
-
-    // =========================
-    // INIT
-    // =========================
-    (function init(){
-      log("JS loaded OK");
-      log(`API = ${API}`);
-
-      attachPillClicks();
-
-      // start at today
-      selectDate(new Date());
-    })();
-  </script>
+/* ===== INIT ===== */
+document.getElementById("prettyDate").innerText=pretty(curDate);
+loadDay(selDateISO);
+loadHeatmap();
+</script>
 </body>
 </html>
