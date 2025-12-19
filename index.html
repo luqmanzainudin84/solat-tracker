@@ -6,163 +6,196 @@
 <title>Solat Tracker</title>
 
 <style>
-:root{
-  --bg:#f2f2f2;
-  --card:#fff;
-  --line:#eaeaea;
-  --shadow:0 2px 10px rgba(0,0,0,.08);
-
-  --red:#e53935;
-  --yellow:#fbc02d;
-  --green:#43a047;
-  --grey:#bdbdbd;
-  --gold:#fdd835;
-}
-
 body{
   margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
-  background:var(--bg);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto;
+  background:#f4f4f4;
+}
+.container{
+  max-width:420px;
+  margin:auto;
+  padding:16px;
+}
+h1{
+  text-align:center;
+  margin-bottom:4px;
+}
+.date-text{
+  text-align:center;
+  color:#555;
+  margin-bottom:12px;
 }
 
-.wrap{
-  max-width:520px;
-  margin:16px auto;
-  padding:0 14px 30px;
-}
-
-/* ====== HEATMAP ====== */
-.hm-card{
-  margin-top:16px;
-  background:var(--card);
+/* ===== DATE PICKER ===== */
+.date-box{
+  background:#fff;
+  padding:12px;
   border-radius:16px;
-  box-shadow:var(--shadow);
+  box-shadow:0 2px 8px rgba(0,0,0,.1);
+  margin-bottom:12px;
+}
+.date-input{
+  width:100%;
+  padding:10px;
+  font-size:16px;
+  border-radius:10px;
+  border:1px solid #ccc;
+}
+
+/* ===== DAILY STATUS ===== */
+.card{
+  background:#fff;
+  border-radius:16px;
+  box-shadow:0 2px 10px rgba(0,0,0,.1);
   padding:12px;
 }
+.row{
+  recall:0;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:10px 0;
+  border-bottom:1px solid #eee;
+}
+.row:last-child{border-bottom:none}
 
+.pill{
+  padding:6px 14px;
+  border-radius:999px;
+  color:#fff;
+  font-size:14px;
+  cursor:pointer;
+}
+.grey{background:#9e9e9e}
+.red{background:#e53935}
+.yellow{background:#fbc02d;color:#000}
+.green{background:#43a047}
+.gold{background:#fdd835;color:#000}
+
+/* ===== POPUP ===== */
+.popup{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.6);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:99;
+}
+.hidden{display:none}
+.popup-box{
+  background:#fff;
+  width:85%;
+  max-width:320px;
+  padding:16px;
+  border-radius:16px;
+}
+.popup-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.btn{
+  padding:12px;
+  border:none;
+  border-radius:12px;
+  font-weight:700;
+  cursor:pointer;
+}
+.cancel{
+  margin-top:12px;
+  width:100%;
+  padding:10px;
+  border-radius:12px;
+  border:none;
+}
+
+/* ===== HEATMAP ===== */
+.hm-card{
+  margin-top:16px;
+  background:#fff;
+  border-radius:16px;
+  box-shadow:0 2px 10px rgba(0,0,0,.1);
+  padding:12px;
+}
 .hm-title{
   font-weight:800;
   margin-bottom:8px;
 }
-
 .hm-scroll{
   overflow-x:auto;
-  -webkit-overflow-scrolling:touch;
 }
-
 .hm-table{
   display:grid;
   grid-template-columns:70px auto;
   gap:8px;
 }
-
 .hm-labels{
   display:grid;
-  grid-template-rows:repeat(5,30px);
+  grid-template-rows:repeat(5,28px);
   gap:6px;
-  font-size:13px;
   font-weight:700;
-  color:#555;
+  font-size:13px;
 }
-
 .hm-grid{
   display:grid;
   grid-auto-flow:column;
-  grid-auto-columns:30px;
-  grid-template-rows:repeat(5,30px);
+  grid-auto-columns:28px;
+  grid-template-rows:repeat(5,28px);
   gap:6px;
 }
-
 .hm-cell{
-  width:30px;
-  height:30px;
+  width:28px;
+  height:28px;
   border-radius:6px;
-  background:#eee;
-  cursor:pointer;
+  background:#e0e0e0;
 }
-
-.hm-cell.red{background:var(--red);}
-.hm-cell.yellow{background:var(--yellow);}
-.hm-cell.green{background:var(--green);}
-.hm-cell.grey{background:var(--grey);}
-
+.hm-cell.red{background:#e53935}
+.hm-cell.yellow{background:#fbc02d}
+.hm-cell.green{background:#43a047}
 .hm-cell.jemaah{
-  background:var(--green);
+  background:#43a047;
   position:relative;
 }
 .hm-cell.jemaah::after{
   content:"";
   position:absolute;
-  left:4px; right:4px; bottom:4px;
+  left:4px;right:4px;bottom:4px;
   height:3px;
-  background:var(--gold);
+  background:#fdd835;
   border-radius:99px;
 }
 
-/* ===== POPUP ===== */
-.overlay{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.55);
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  z-index:999;
-}
-.hidden{display:none;}
-
-.popup{
-  background:#fff;
-  border-radius:16px;
-  width:90%;
-  max-width:360px;
-  padding:14px;
-}
-
-.pop-title{
-  font-weight:900;
-  margin-bottom:10px;
-}
-
-.pop-grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-}
-
-.btn{
-  padding:10px;
-  border:none;
-  border-radius:12px;
-  font-weight:800;
-  cursor:pointer;
-}
-
-.btn.red{background:var(--red);color:#fff;}
-.btn.yellow{background:var(--yellow);}
-.btn.green{background:var(--green);color:#fff;}
-.btn.gold{background:var(--gold);}
-.btn.cancel{
-  width:100%;
-  margin-top:10px;
-  background:#ccc;
+/* ===== DEBUG ===== */
+.debug{
+  margin-top:12px;
+  background:#000;
+  color:#0f0;
+  font-family:monospace;
+  font-size:12px;
+  padding:8px;
+  border-radius:10px;
+  max-height:120px;
+  overflow:auto;
 }
 </style>
 </head>
 
 <body>
-<div class="wrap">
+<div class="container">
+  <h1>Solat Tracker</h1>
+  <div class="date-text" id="dateText"></div>
 
-  <!-- 🔴 ATAS (DATE SELECTOR + STATUS HARIAN)
-       ⛔️ KEKAL – ANG GAP CODE AWAK SEDIA ADA -->
+  <div class="date-box">
+    <input type="date" id="datePicker" class="date-input">
+  </div>
 
-  <!-- ===== HEATMAP ===== -->
+  <div class="card" id="dailyCard"></div>
+
   <div class="hm-card">
-    <div class="hm-title">Ringkasan Bulan</div>
-
+    <div class="hm-title">Ringkasan Solat</div>
     <div class="hm-scroll">
       <div class="hm-table">
-
         <div class="hm-labels">
           <div>Subuh</div>
           <div>Zohor</div>
@@ -170,77 +203,101 @@ body{
           <div>Maghrib</div>
           <div>Isyak</div>
         </div>
-
         <div class="hm-grid" id="heatmap"></div>
-
       </div>
     </div>
   </div>
 
+  <div class="debug" id="debug"></div>
 </div>
 
-<!-- POPUP -->
-<div class="overlay hidden" id="overlay">
-  <div class="popup">
-    <div class="pop-title" id="popTitle"></div>
-    <div class="pop-grid">
-      <button class="btn red" onclick="setVal(0)">Tak Solat</button>
-      <button class="btn yellow" onclick="setVal(1)">Lewat</button>
-      <button class="btn green" onclick="setVal(2)">Awal</button>
-      <button class="btn gold" onclick="setVal(3)">Jemaah</button>
+<div class="popup hidden" id="popup">
+  <div class="popup-box">
+    <h3 id="popupTitle"></h3>
+    <div class="popup-grid">
+      <button class="btn red" onclick="submitSolat(0)">Tak Solat</button>
+      <button class="btn yellow" onclick="submitSolat(1)">Lewat</button>
+      <button class="btn green" onclick="submitSolat(2)">Awal</button>
+      <button class="btn gold" onclick="submitSolat(3)">Jemaah</button>
     </div>
-    <button class="btn cancel" onclick="closePop()">Cancel</button>
+    <button class="cancel" onclick="closePopup()">Cancel</button>
   </div>
 </div>
 
 <script>
 const API="https://script.google.com/macros/s/AKfycbwRxMoxud-Rsn__BoiKQyOtPc9M0n-Q-gCUmDFVkUhUmSXdCyagCb5JruxUEDzA8ulq/exec";
 const PRAYERS=["subuh","zohor","asar","maghrib","isyak"];
-const LABEL={subuh:"Subuh",zohor:"Zohor",asar:"Asar",maghrib:"Maghrib",isyak:"Isyak"};
+let selectedSolat=null;
+let selectedDate=today();
 
-let selDate=null;
-let selSolat=null;
+function log(msg){
+  const d=document.getElementById("debug");
+  d.innerHTML+=`[${new Date().toLocaleTimeString()}] ${msg}<br>`;
+  d.scrollTop=d.scrollHeight;
+}
 
-/* ===== HEATMAP ===== */
+function today(){return new Date().toISOString().slice(0,10);}
+
+function label(v){return["Tak","Lewat","Awal","Jemaah","Belum"][v]}
+
+function pillClass(v){
+  return["red","yellow","green","gold","grey"][v]
+}
+
+function openPopup(s){selectedSolat=s;document.getElementById("popupTitle").innerText=s.toUpperCase();document.getElementById("popup").classList.remove("hidden")}
+function closePopup(){document.getElementById("popup").classList.add("hidden")}
+
+async function submitSolat(val){
+  log(`submit ${selectedSolat}=${val}`);
+  await fetch(API,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({date:selectedDate,solat:selectedSolat,value:val})
+  });
+  closePopup();
+  loadDay();
+  loadHeatmap();
+}
+
+async function loadDay(){
+  const res=await fetch(API+`?mode=detail&date=${selectedDate}`);
+  const d=await res.json();
+  const card=document.getElementById("dailyCard");
+  card.innerHTML="";
+  PRAYERS.forEach(p=>{
+    const v=d[p]??4;
+    card.innerHTML+=`
+      <div class="row">
+        <span>${p[0].toUpperCase()+p.slice(1)}</span>
+        <span class="pill ${pillClass(v)}" onclick="openPopup('${p}')">${label(v)}</span>
+      </div>`;
+  });
+}
+
 async function loadHeatmap(){
-  const res=await fetch(`${API}?mode=summary`);
-  const json=await res.json();
-  const days=json.days||[];
-
+  const res=await fetch(API+"?mode=summary");
+  const data=await res.json();
   const grid=document.getElementById("heatmap");
   grid.innerHTML="";
-
-  days.forEach(day=>{
+  data.days.forEach(day=>{
     PRAYERS.forEach(p=>{
-      const v=day[p] ?? 4;
-      const cell=document.createElement("div");
-      cell.className="hm-cell "+
-        (v===0?"red":v===1?"yellow":v===2?"green":v===3?"jemaah":"grey");
-      cell.onclick=()=>openPop(p,day.date);
-      grid.appendChild(cell);
+      const v=day[p]??4;
+      grid.innerHTML+=`<div class="hm-cell ${pillClass(v)}"></div>`;
     });
   });
 }
 
-/* ===== POPUP ===== */
-function openPop(solat,date){
-  selSolat=solat;
-  selDate=date;
-  document.getElementById("popTitle").innerText=
-    `${LABEL[solat]} — ${date}`;
-  document.getElementById("overlay").classList.remove("hidden");
-}
-function closePop(){
-  document.getElementById("overlay").classList.add("hidden");
-}
-async function setVal(v){
-  await fetch(`${API}?mode=update&date=${selDate}&solat=${selSolat}&value=${v}`);
-  closePop();
-  loadHeatmap();
-}
+document.getElementById("datePicker").value=selectedDate;
+document.getElementById("datePicker").onchange=e=>{
+  selectedDate=e.target.value;
+  loadDay();
+};
 
-/* INIT */
+document.getElementById("dateText").innerText=new Date().toLocaleDateString("ms-MY",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+
+loadDay();
 loadHeatmap();
+log("App loaded OK");
 </script>
 </body>
 </html>
