@@ -1,490 +1,325 @@
 <!DOCTYPE html>
 <html lang="ms">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Solat Tracker</title>
 
 <style>
-  body{margin:0;background:#f4f4f4;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto}
-  .container{max-width:420px;margin:auto;padding:16px}
-  h1{text-align:center;margin:6px 0}
-  .sub{text-align:center;color:#666;margin-bottom:10px}
+body{
+  margin:0;
+  background:#f4f4f4;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+}
 
-  .card{
-    background:#fff;border-radius:14px;padding:14px;margin-bottom:14px;
-    box-shadow:0 2px 6px rgba(0,0,0,.08)
-  }
+.container{
+  max-width:430px;
+  margin:auto;
+  padding:16px;
+}
 
-  /* Month + day scroller (UI atas MAINTAIN) */
-  .month-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-  .month-btn{background:#eee;border:none;border-radius:10px;padding:8px 12px;font-size:18px;cursor:pointer}
-  .days{display:flex;gap:10px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px}
-  .day{
-    min-width:66px;padding:10px 6px;border-radius:12px;background:#f0f0f0;text-align:center;
-    cursor:pointer;user-select:none
-  }
-  .day.active{background:#111;color:#fff}
+/* ===== HEADER ===== */
+h1{text-align:center;margin:8px 0}
+.subdate{text-align:center;color:#666;margin-bottom:12px}
 
-  /* Daily rows */
-  .row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #eee}
-  .row:last-child{border-bottom:none}
-  .pill{padding:6px 14px;border-radius:20px;color:#fff;font-size:14px;cursor:pointer;user-select:none}
-  .grey{background:#aaa}
-  .red{background:#e74c3c}
-  .yellow{background:#f1c40f;color:#000}
-  .green{background:#2ecc71}
-  .gold{background:#f39c12;color:#000}
+/* ===== CALENDAR BAR (KEKAL) ===== */
+.calendar{
+  background:#fff;
+  border-radius:16px;
+  padding:12px;
+  margin-bottom:16px;
+}
+.calendar-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  font-weight:600;
+}
+.cal-btn{
+  background:#eee;
+  border:none;
+  border-radius:50%;
+  width:36px;height:36px;
+  font-size:18px;
+}
+.calendar-days{
+  display:flex;
+  gap:8px;
+  margin-top:10px;
+  overflow-x:auto;
+}
+.day-box{
+  min-width:64px;
+  padding:8px;
+  text-align:center;
+  border-radius:14px;
+  background:#f1f1f1;
+}
+.day-box.active{
+  background:#000;
+  color:#fff;
+}
 
-  /* Popup */
-  .popup{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;justify-content:center;align-items:center;z-index:9999}
-  .hidden{display:none}
-  .popup-box{background:#fff;border-radius:14px;padding:16px;width:85%;max-width:320px}
-  .popup-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  .popup-box button{border:none;border-radius:10px;padding:10px;font-size:14px;cursor:pointer}
+/* ===== STATUS CARD ===== */
+.card{
+  background:#fff;
+  border-radius:16px;
+  padding:14px;
+  margin-bottom:16px;
+}
+.card h3{margin:0 0 6px}
+.row{
+  display:flex;
+  justify-content:space-between;
+  padding:10px 0;
+  border-bottom:1px solid #eee;
+}
+.row:last-child{border-bottom:none}
+.pill{
+  padding:6px 14px;
+  border-radius:14px;
+  color:#fff;
+  font-size:14px;
+}
+.grey{background:#aaa}
+.red{background:#e74c3c}
+.yellow{background:#f1c40f;color:#000}
+.green{background:#2ecc71}
+.gold{background:#f39c12;color:#000}
 
-  /* Heatmap calendar grid (FIX: bukan 1 row) */
-  .hm-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-  .hm-note{font-size:12px;color:#666}
-  .hm-weekdays{
-    display:grid;grid-template-columns:repeat(7,1fr);gap:6px;
-    margin:6px 0 8px 0;font-size:12px;color:#888;text-align:center
-  }
-  .heatmap-wrap{overflow:hidden}
-  .heatmap{
-    display:grid;
-    grid-template-columns:repeat(7, 1fr);
-    gap:6px;
-  }
-  .hm-cell{
-    height:30px;border-radius:8px;
-    display:flex;align-items:center;justify-content:center;
-    font-size:12px;color:#fff;
-    user-select:none;
-  }
-  .hm-empty{background:transparent;border:1px dashed rgba(0,0,0,.06);color:transparent}
-  .hm-today{outline:2px solid rgba(0,0,0,.25)}
+/* ===== HEATMAP ===== */
+.heatmap-wrapper{
+  background:#fff;
+  border-radius:16px;
+  padding:12px;
+}
+.heatmap-scroll{
+  display:flex;
+  gap:10px;
+  overflow-x:auto;
+  padding-bottom:6px;
+}
+.hm-col{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:6px;
+}
+.hm-month{
+  font-size:11px;
+  color:#666;
+}
+.hm-day{
+  font-weight:600;
+  background:#eee;
+  border-radius:8px;
+  width:34px;
+  text-align:center;
+}
+.hm-cell{
+  width:18px;
+  height:18px;
+  border-radius:4px;
+}
 
-  /* Debug */
-  .debug{
-    background:#000;color:#0f0;font-family:monospace;font-size:12px;padding:10px;border-radius:10px;
-    margin-top:14px;max-height:170px;overflow:auto
-  }
+/* ===== POPUP ===== */
+.popup{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.4);
+  display:none;
+  align-items:center;
+  justify-content:center;
+}
+.popup-box{
+  background:#fff;
+  padding:16px;
+  border-radius:16px;
+  width:85%;
+}
+.popup-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.popup button{
+  border:none;
+  padding:10px;
+  border-radius:10px;
+  font-size:14px;
+}
+.cancel{
+  margin-top:10px;
+  width:100%;
+}
 </style>
 </head>
 
 <body>
 <div class="container">
 
-  <h1>Solat Tracker</h1>
-  <div class="sub" id="todayLabel"></div>
+<h1>Solat Tracker</h1>
+<div id="todayLabel" class="subdate"></div>
 
-  <!-- UI atas: bulan + list tarikh (maintain) -->
-  <div class="card">
-    <div class="month-nav">
-      <button class="month-btn" onclick="changeMonth(-1)">‹</button>
-      <strong id="monthLabel"></strong>
-      <button class="month-btn" onclick="changeMonth(1)">›</button>
-    </div>
-    <div class="days" id="dayList"></div>
+<!-- CALENDAR -->
+<div class="calendar">
+  <div class="calendar-header">
+    <button class="cal-btn" onclick="changeMonth(-1)">‹</button>
+    <div id="monthLabel"></div>
+    <button class="cal-btn" onclick="changeMonth(1)">›</button>
   </div>
-
-  <!-- Status Harian -->
-  <div class="card">
-    <b>Status Harian</b>
-    <div id="dateLabel" style="margin-top:6px;color:#333"></div>
-    <div id="dailyRows" style="margin-top:8px"></div>
-  </div>
-
-  <!-- Heatmap ikut bulan (grid 7 kolum) -->
-  <div class="card">
-    <div class="hm-head">
-      <b>Heatmap Solat</b>
-      <span class="hm-note" id="hmMonthNote"></span>
-    </div>
-
-    <div class="hm-weekdays">
-      <div>Ahd</div><div>Isn</div><div>Sel</div><div>Rab</div><div>Kha</div><div>Jum</div><div>Sab</div>
-    </div>
-
-    <div class="heatmap-wrap">
-      <div class="heatmap" id="heatmap"></div>
-    </div>
-  </div>
-
-  <div class="debug" id="debug"></div>
+  <div id="dayRow" class="calendar-days"></div>
 </div>
 
-<!-- Popup -->
-<div class="popup hidden" id="popup">
+<!-- STATUS -->
+<div class="card">
+  <h3>Status Harian</h3>
+  <div id="dateLabel"></div>
+
+  <div class="row"><span>Subuh</span><span id="p-subuh" class="pill grey" onclick="openPopup('subuh')">Belum</span></div>
+  <div class="row"><span>Zohor</span><span id="p-zohor" class="pill grey" onclick="openPopup('zohor')">Belum</span></div>
+  <div class="row"><span>Asar</span><span id="p-asar" class="pill grey" onclick="openPopup('asar')">Belum</span></div>
+  <div class="row"><span>Maghrib</span><span id="p-maghrib" class="pill grey" onclick="openPopup('maghrib')">Belum</span></div>
+  <div class="row"><span>Isyak</span><span id="p-isyak" class="pill grey" onclick="openPopup('isyak')">Belum</span></div>
+</div>
+
+<!-- HEATMAP -->
+<div class="heatmap-wrapper">
+  <h3>Heatmap Solat</h3>
+  <div id="heatmap" class="heatmap-scroll"></div>
+</div>
+
+</div>
+
+<!-- POPUP -->
+<div id="popup" class="popup">
   <div class="popup-box">
-    <h3 id="popupTitle" style="margin:0 0 12px 0"></h3>
+    <h3 id="popupTitle"></h3>
     <div class="popup-grid">
-      <button class="red" onclick="submitUpdate(0)">✖ Tak Solat</button>
-      <button class="yellow" onclick="submitUpdate(1)">⏱ Lewat</button>
-      <button class="green" onclick="submitUpdate(2)">✔ Awal</button>
-      <button class="gold" onclick="submitUpdate(3)">⭐ Jemaah</button>
+      <button class="red" onclick="submitSolat(0)">Tak Solat</button>
+      <button class="yellow" onclick="submitSolat(1)">Lewat</button>
+      <button class="green" onclick="submitSolat(2)">Awal</button>
+      <button class="gold" onclick="submitSolat(3)">Jemaah</button>
     </div>
-    <button style="margin-top:10px;width:100%" onclick="closePopup()">Cancel</button>
+    <button class="cancel" onclick="closePopup()">Cancel</button>
   </div>
 </div>
 
 <script>
-/* ===================== CONFIG ===================== */
+/* ========= CONFIG ========= */
 const API = "https://script.google.com/macros/s/AKfycbwRxMoxud-Rsn__BoiKQyOtPc9M0n-Q-gCUmDFVkUhUmSXdCyagCb5JruxUEDzA8ulq/exec";
+const MAP = ["red","yellow","green","gold","grey"];
+const LABEL = ["Tak","Lewat","Awal","Jemaah","Belum"];
 
-const SOLAT = ["subuh","zohor","asar","maghrib","isyak"];
-const LABEL = ["Tak Solat","Lewat","Awal","Jemaah","Belum"];
-const COLOR = ["red","yellow","green","gold","grey"];
-
-/* ===================== STATE ===================== */
-let viewDate = new Date();        // bulan yang dipaparkan
-let selectedDate = null;          // yyyy-mm-dd
+let currentDate = new Date();
 let selectedSolat = null;
+let cache = {}; // date -> data
 
-const detailCache = new Map();    // date -> {subuh..}
-let monthSummaryMap = new Map();  // date -> {status, jemaah}
-let currentMonthKey = "";         // "yyyy-mm"
+/* ========= INIT ========= */
+init();
 
-const lastUpdateAt = new Map();   // date -> timestamp (anti revert)
-
-/* ===================== HELPERS ===================== */
-const dbg = (m) => {
-  const el = document.getElementById("debug");
-  el.innerHTML += `[${new Date().toLocaleTimeString()}] ${m}<br>`;
-  el.scrollTop = 999999;
-};
-
-const iso = (d) => new Date(d).toISOString().slice(0,10);
-
-const monthKey = (d) => {
-  const dt = new Date(d);
-  const y = dt.getFullYear();
-  const m = String(dt.getMonth()+1).padStart(2,"0");
-  return `${y}-${m}`;
-};
-
-const prettyMonth = (d) => new Date(d).toLocaleDateString("ms-MY",{month:"long",year:"numeric"});
-const prettyFull = (d) => new Date(d).toLocaleDateString("ms-MY",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
-
-function setHeader(){
-  document.getElementById("todayLabel").textContent = prettyFull(new Date());
-  document.getElementById("monthLabel").textContent = prettyMonth(viewDate);
+async function init(){
+  renderHeader();
+  renderCalendar();
+  await loadDetail();
+  await loadHeatmap();
 }
 
-function renderDayScroller(){
-  const dayList = document.getElementById("dayList");
-  dayList.innerHTML = "";
+/* ========= HEADER ========= */
+function renderHeader(){
+  todayLabel.textContent = currentDate.toLocaleDateString("ms",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+  monthLabel.textContent = currentDate.toLocaleDateString("ms",{month:"long",year:"numeric"});
+  dateLabel.textContent = "Tarikh: " + format(currentDate);
+}
 
-  const y = viewDate.getFullYear();
-  const m = viewDate.getMonth();
-  const daysInMonth = new Date(y, m+1, 0).getDate();
-
-  for(let day=1; day<=daysInMonth; day++){
-    const d = new Date(y, m, day);
-    const el = document.createElement("div");
-    el.className = "day";
-    el.innerHTML = `<div>${d.toLocaleDateString("ms",{weekday:"short"})}</div><b>${day}</b>`;
-    const dISO = iso(d);
-    if(selectedDate === dISO) el.classList.add("active");
-    el.onclick = () => selectDate(dISO);
-    dayList.appendChild(el);
+/* ========= CALENDAR ========= */
+function renderCalendar(){
+  dayRow.innerHTML="";
+  for(let i=-2;i<=2;i++){
+    let d=new Date(currentDate); d.setDate(d.getDate()+i);
+    let el=document.createElement("div");
+    el.className="day-box"+(i===0?" active":"");
+    el.innerHTML=`<div>${d.toLocaleDateString("ms",{weekday:"short"})}</div><b>${d.getDate()}</b>`;
+    el.onclick=()=>{currentDate=d;init()};
+    dayRow.appendChild(el);
   }
 }
 
-function paintDaily(detail){
-  const rows = document.getElementById("dailyRows");
-  rows.innerHTML = "";
+function changeMonth(n){
+  currentDate.setMonth(currentDate.getMonth()+n);
+  init();
+}
 
-  SOLAT.forEach(s=>{
-    const v = (detail && detail[s] !== undefined) ? detail[s] : 4;
-    rows.innerHTML += `
-      <div class="row">
-        <span style="font-size:18px">${s[0].toUpperCase()+s.slice(1)}</span>
-        <span class="pill ${COLOR[v]}" onclick="openPopup('${s}')">${LABEL[v]}</span>
-      </div>
+/* ========= STATUS ========= */
+function updatePill(name,val){
+  let el=document.getElementById("p-"+name);
+  el.className="pill "+MAP[val];
+  el.textContent=LABEL[val];
+}
+
+/* ========= DATA ========= */
+async function loadDetail(){
+  const key=format(currentDate);
+  if(cache[key]){
+    applyDetail(cache[key]); return;
+  }
+  const r=await fetch(API+"?mode=detail&date="+key);
+  const d=await r.json();
+  cache[key]=d;
+  applyDetail(d);
+}
+
+function applyDetail(d){
+  ["subuh","zohor","asar","maghrib","isyak"].forEach(k=>{
+    updatePill(k,d[k]??4);
+  });
+}
+
+/* ========= HEATMAP ========= */
+async function loadHeatmap(){
+  const r=await fetch(API+"?mode=summary");
+  const data=(await r.json()).days;
+  heatmap.innerHTML="";
+  data.forEach(d=>{
+    const col=document.createElement("div");
+    col.className="hm-col";
+    col.onclick=()=>{currentDate=new Date(d.date);init()};
+
+    col.innerHTML=`
+      <div class="hm-month">${new Date(d.date).toLocaleDateString("ms",{month:"short"})}</div>
+      <div class="hm-day">${new Date(d.date).getDate()}</div>
+      ${[0,1,2,3,4].map(i=>`<div class="hm-cell ${MAP[d[i]??4]}"></div>`).join("")}
     `;
+    heatmap.appendChild(col);
   });
 }
 
-/* ===================== POPUP ===================== */
+/* ========= POPUP ========= */
 function openPopup(s){
-  selectedSolat = s;
-  document.getElementById("popupTitle").textContent = `${s.toUpperCase()} — ${selectedDate}`;
-  document.getElementById("popup").classList.remove("hidden");
+  selectedSolat=s;
+  popupTitle.textContent=s.toUpperCase();
+  popup.style.display="flex";
 }
-function closePopup(){
-  document.getElementById("popup").classList.add("hidden");
-}
+function closePopup(){popup.style.display="none"}
 
-/* ===================== API CALLS ===================== */
-async function fetchDetail(dateStr){
-  const url = `${API}?mode=detail&date=${encodeURIComponent(dateStr)}`;
-  const r = await fetch(url);
-  return await r.json();
-}
-
-async function fetchSummary(){
-  const r = await fetch(`${API}?mode=summary`);
-  return await r.json(); // {days:[{date,status,jemaah}]}
-}
-
-function postUpdate(payload){
-  // no-cors: tak boleh baca response, tapi boleh "hantar"
-  return fetch(API, {
-    method:"POST",
-    mode:"no-cors",
-    headers:{"Content-Type":"application/json"},
-    body: JSON.stringify(payload)
-  });
-}
-
-/* ===================== SELECT DATE ===================== */
-async function selectDate(dateStr){
-  selectedDate = dateStr;
-  document.getElementById("dateLabel").textContent = "Tarikh: " + selectedDate;
-  renderDayScroller();
-
-  // Load detail (cache)
-  if(detailCache.has(selectedDate)){
-    paintDaily(detailCache.get(selectedDate));
-    dbg("detail cache hit: " + selectedDate);
-  }else{
-    dbg("load detail: " + selectedDate);
-    const detail = await fetchDetail(selectedDate);
-    detailCache.set(selectedDate, detail);
-    paintDaily(detail);
-  }
-
-  // highlight in heatmap (optional)
-  highlightHeatmapToday();
-}
-
-/* ===================== UPDATE SOLAT (anti revert) ===================== */
-async function submitUpdate(value){
-  if(!selectedDate || !selectedSolat) return;
-
-  const now = Date.now();
-  lastUpdateAt.set(selectedDate, now);
-
-  // optimistic local update
-  const local = {...(detailCache.get(selectedDate) || {})};
-  local[selectedSolat] = value;
-  detailCache.set(selectedDate, local);
-  paintDaily(local);
+async function submitSolat(val){
+  const key=format(currentDate);
+  cache[key]??={date:key};
+  cache[key][selectedSolat]=val;   // optimistic
+  applyDetail(cache[key]);
   closePopup();
 
-  dbg(`submit ${selectedSolat}=${value} date=${selectedDate}`);
-
-  // send
-  try{
-    await postUpdate({date:selectedDate, solat:selectedSolat, value});
-  }catch(e){
-    dbg("POST ERR: " + (e?.message||e));
-  }
-
-  // delayed verify (elak revert sebab sheet lag)
-  setTimeout(async()=>{
-    if(lastUpdateAt.get(selectedDate) !== now) return; // ada update baru
-    try{
-      const fresh = await fetchDetail(selectedDate);
-
-      // GUARD: kalau server masih "Belum" tapi kita baru update (server lag)
-      if(fresh[selectedSolat] === 4 && value !== 4){
-        dbg("verify skipped (server lag)");
-        return;
-      }
-
-      detailCache.set(selectedDate, fresh);
-      paintDaily(fresh);
-      dbg("verify OK");
-
-      // refresh summary bulan (supaya heatmap cepat update)
-      await loadMonthSummaryAndHeatmap(false);
-
-    }catch(e){
-      dbg("verify ERR: " + (e?.message||e));
-    }
-  }, 1800);
-}
-
-/* ===================== HEATMAP (month only, grid 7 kolum) ===================== */
-function buildMonthCalendarCells(y, m){ // m: 0-11
-  const first = new Date(y, m, 1);
-  const lastDay = new Date(y, m+1, 0).getDate();
-
-  // JS getDay(): 0=Ahad ... 6=Sabtu
-  const pad = first.getDay(); // number of empty cells before day 1
-
-  const cells = [];
-  for(let i=0;i<pad;i++) cells.push({empty:true});
-
-  for(let d=1; d<=lastDay; d++){
-    const dt = new Date(y, m, d);
-    const dateStr = iso(dt);
-    cells.push({empty:false, date:dateStr, day:d});
-  }
-
-  // optional: pad end so grid looks neat (complete week)
-  const remainder = cells.length % 7;
-  if(remainder !== 0){
-    for(let i=0;i<7-remainder;i++) cells.push({empty:true});
-  }
-
-  return cells;
-}
-
-function highlightHeatmapToday(){
-  const today = iso(new Date());
-  document.querySelectorAll(".hm-cell").forEach(el=>{
-    el.classList.remove("hm-today");
-    if(el.dataset && el.dataset.date === today){
-      el.classList.add("hm-today");
-    }
-  });
-}
-
-function renderHeatmapMonth(){
-  const hm = document.getElementById("heatmap");
-  hm.innerHTML = "";
-
-  const y = viewDate.getFullYear();
-  const m = viewDate.getMonth();
-  const key = monthKey(viewDate);
-  document.getElementById("hmMonthNote").textContent = key;
-
-  const cells = buildMonthCalendarCells(y, m);
-
-  cells.forEach(c=>{
-    const div = document.createElement("div");
-    div.className = "hm-cell";
-
-    if(c.empty){
-      div.classList.add("hm-empty");
-      hm.appendChild(div);
-      return;
-    }
-
-    const info = monthSummaryMap.get(c.date);
-    const status = info ? info.status : 4; // default Belum jika tiada summary
-    div.classList.add(COLOR[status]);
-    div.textContent = String(c.day);
-
-    div.dataset.date = c.date;
-    div.title = c.date;
-
-    // tap cell = select date
-    div.onclick = ()=> selectDate(c.date);
-
-    hm.appendChild(div);
+  await fetch(API,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({date:key,solat:selectedSolat,value:val})
   });
 
-  highlightHeatmapToday();
+  loadHeatmap(); // sync visual
 }
 
-/* ===================== CACHE SEBULAN (Option 1) ===================== */
-async function prefetchMonthDetails(){
-  const y = viewDate.getFullYear();
-  const m = viewDate.getMonth();
-  const daysInMonth = new Date(y, m+1, 0).getDate();
-
-  dbg(`prefetch month details start (${daysInMonth} hari)`);
-
-  // limit concurrency kecil supaya tak “banjir” request
-  const concurrency = 3;
-  let index = 1;
-  let running = 0;
-
-  return new Promise((resolve)=>{
-    const next = async ()=>{
-      if(index > daysInMonth && running === 0){
-        dbg("prefetch month details DONE");
-        resolve();
-        return;
-      }
-      while(running < concurrency && index <= daysInMonth){
-        const d = new Date(y, m, index++);
-        const dateStr = iso(d);
-        if(detailCache.has(dateStr)) continue;
-
-        running++;
-        fetchDetail(dateStr)
-          .then(detail=>{
-            detailCache.set(dateStr, detail);
-          })
-          .catch(()=>{})
-          .finally(()=>{
-            running--;
-            next();
-          });
-      }
-    };
-    next();
-  });
-}
-
-/* ===================== LOAD MONTH SUMMARY + HEATMAP (Option 2) ===================== */
-async function loadMonthSummaryAndHeatmap(doPrefetch=true){
-  const key = monthKey(viewDate);
-  currentMonthKey = key;
-
-  dbg("load summary (all) then filter month: " + key);
-
-  const sum = await fetchSummary(); // {days:[]}
-  const map = new Map();
-
-  // filter ikut bulan yang dipilih
-  (sum.days || []).forEach(d=>{
-    if(typeof d.date === "string" && d.date.startsWith(key)){
-      map.set(d.date, {status:d.status, jemaah:d.jemaah});
-    }
-  });
-
-  monthSummaryMap = map;
-
-  renderHeatmapMonth();
-
-  // prefetch details untuk sebulan (laju bila tekan tarikh)
-  if(doPrefetch){
-    await prefetchMonthDetails();
-  }
-}
-
-/* ===================== MONTH CHANGE ===================== */
-async function changeMonth(delta){
-  viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth()+delta, 1);
-  setHeader();
-
-  // bila tukar bulan, auto select hari 1 (atau kalau masih bulan sama with selectedDate, keep)
-  const newFirst = iso(new Date(viewDate.getFullYear(), viewDate.getMonth(), 1));
-  selectedDate = newFirst;
-
-  renderDayScroller();
-  document.getElementById("dateLabel").textContent = "Tarikh: " + selectedDate;
-
-  await loadMonthSummaryAndHeatmap(true);
-  await selectDate(selectedDate);
-}
-
-/* ===================== INIT ===================== */
-async function init(){
-  setHeader();
-
-  // default pilih hari ini
-  selectedDate = iso(new Date());
-  // kalau hari ini bukan bulan viewDate (rare), set viewDate ikut hari ini
-  viewDate = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-
-  setHeader();
-  renderDayScroller();
-
-  await loadMonthSummaryAndHeatmap(true);
-  await selectDate(selectedDate);
-
-  dbg("JS loaded OK");
-}
-
-init();
+/* ========= UTIL ========= */
+function format(d){return d.toISOString().slice(0,10)}
 </script>
 
 </body>
