@@ -2,55 +2,74 @@
 <html lang="ms">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Solat Tracker</title>
 
 <style>
 body{margin:0;font-family:system-ui;background:#f4f4f4}
-.container{max-width:420px;margin:auto;padding:16px}
-h1{text-align:center;margin-bottom:4px}
-.date-text{text-align:center;color:#555;margin-bottom:10px}
+.container{max-width:430px;margin:auto;padding:16px}
+h1{text-align:center;margin-bottom:2px}
+.subtitle{text-align:center;color:#666;margin-bottom:14px}
 
-.card,.hm-card{background:#fff;border-radius:16px;box-shadow:0 2px 10px rgba(0,0,0,.1);padding:12px;margin-bottom:14px}
+.card{background:#fff;border-radius:16px;padding:14px;margin-bottom:14px;box-shadow:0 2px 10px rgba(0,0,0,.1)}
+
+.month-nav{display:flex;align-items:center;justify-content:space-between}
+.month-nav button{border:none;background:#eee;padding:8px 12px;border-radius:10px;font-size:18px}
+
+.date-strip{display:flex;gap:10px;overflow-x:auto;margin-top:10px}
+.date-box{min-width:60px;padding:8px;border-radius:14px;background:#f1f1f1;text-align:center;cursor:pointer}
+.date-box.active{background:#111;color:#fff}
+
 .row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eee}
 .row:last-child{border-bottom:none}
 
 .pill{padding:6px 14px;border-radius:999px;color:#fff;font-size:14px;cursor:pointer}
-.grey{background:#9e9e9e}
 .red{background:#e53935}
 .yellow{background:#fbc02d;color:#000}
 .green{background:#43a047}
 .gold{background:#fdd835;color:#000}
+.grey{background:#9e9e9e}
 
-input[type=date]{width:100%;padding:10px;border-radius:12px;border:1px solid #ccc}
+.hm-card{background:#fff;border-radius:16px;padding:12px;box-shadow:0 2px 10px rgba(0,0,0,.1)}
+.hm-scroll{overflow-x:auto;margin-top:8px}
+.hm-grid{
+  display:grid;
+  grid-auto-flow:column;
+  grid-auto-columns:36px;
+  grid-template-rows:repeat(5,36px);
+  gap:6px
+}
+.hm-cell{border-radius:8px}
 
-.popup{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:9}
+.popup{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center}
 .hidden{display:none}
-.popup-box{background:#fff;width:85%;max-width:320px;padding:16px;border-radius:16px}
+.popup-box{background:#fff;padding:16px;border-radius:16px;width:85%}
 .popup-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .btn{padding:12px;border:none;border-radius:12px;font-weight:700}
 .cancel{margin-top:10px;width:100%}
 
-.hm-scroll{overflow-x:auto}
-.hm-grid{display:grid;grid-auto-flow:column;grid-auto-columns:28px;grid-template-rows:repeat(5,28px);gap:6px}
-.hm-cell{width:28px;height:28px;border-radius:6px;background:#e0e0e0}
-
-.debug{background:#000;color:#0f0;font-family:monospace;font-size:12px;padding:8px;border-radius:10px;max-height:120px;overflow:auto}
+.debug{background:#000;color:#0f0;font-size:12px;font-family:monospace;padding:8px;border-radius:10px;margin-top:10px;max-height:120px;overflow:auto}
 </style>
 </head>
 
 <body>
 <div class="container">
   <h1>Solat Tracker</h1>
-  <div class="date-text" id="todayText"></div>
+  <div class="subtitle" id="fullDate"></div>
 
-  <input type="date" id="datePicker">
+  <div class="card">
+    <div class="month-nav">
+      <button onclick="changeMonth(-1)">‹</button>
+      <b id="monthLabel"></b>
+      <button onclick="changeMonth(1)">›</button>
+    </div>
+    <div class="date-strip" id="dateStrip"></div>
+  </div>
 
-  <div class="card" id="daily"></div>
+  <div class="card" id="dailyCard"></div>
 
   <div class="hm-card">
-    <b>Ringkasan Solat</b><br>
-    <small id="hmDate"></small>
+    <b>Heatmap Solat</b>
     <div class="hm-scroll">
       <div class="hm-grid" id="heatmap"></div>
     </div>
@@ -75,50 +94,73 @@ input[type=date]{width:100%;padding:10px;border-radius:12px;border:1px solid #cc
 <script>
 const API="https://script.google.com/macros/s/AKfycbwRxMoxud-Rsn__BoiKQyOtPc9M0n-Q-gCUmDFVkUhUmSXdCyagCb5JruxUEDzA8ulq/exec";
 const PRAYERS=["subuh","zohor","asar","maghrib","isyak"];
+let current=new Date();
+let selectedDate=today();
 let selectedSolat=null;
-let date=today();
 
 function log(m){debug.innerHTML+=`[${new Date().toLocaleTimeString()}] ${m}<br>`}
-
 function today(){return new Date().toISOString().slice(0,10)}
 function cls(v){return["red","yellow","green","gold","grey"][v]}
 function lbl(v){return["Tak","Lewat","Awal","Jemaah","Belum"][v]}
 
-function openPopup(s){selectedSolat=s;popupTitle.innerText=s.toUpperCase();popup.classList.remove("hidden")}
-function closePopup(){popup.classList.add("hidden")}
-
-async function submit(v){
-  log(`POST ${selectedSolat}=${v}`);
-  await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({date,solat:selectedSolat,value:v})});
-  closePopup();
-  loadDay();
+function renderCalendar(){
+  dateStrip.innerHTML="";
+  monthLabel.innerText=current.toLocaleDateString("ms-MY",{month:"long",year:"numeric"});
+  const y=current.getFullYear(),m=current.getMonth();
+  for(let d=1;d<=new Date(y,m+1,0).getDate();d++){
+    const iso=`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    const box=document.createElement("div");
+    box.className="date-box"+(iso===selectedDate?" active":"");
+    box.innerHTML=`<b>${d}</b><br><small>${["Ahd","Isn","Sel","Rab","Kha","Jum","Sab"][new Date(iso).getDay()]}</small>`;
+    box.onclick=()=>{selectedDate=iso;renderCalendar();loadDay();loadHeatmap()};
+    dateStrip.appendChild(box);
+  }
 }
 
 async function loadDay(){
-  log("Load day "+date);
-  const r=await fetch(API+`?mode=detail&date=${date}`);
+  log("Load day "+selectedDate);
+  const r=await fetch(API+`?mode=detail&date=${selectedDate}`);
   const d=await r.json();
-  daily.innerHTML="";
-  heatmap.innerHTML="";
-  hmDate.innerText="Tarikh: "+date;
-
+  dailyCard.innerHTML=`<b>Status Harian</b><br><small>Tarikh: ${selectedDate}</small>`;
   PRAYERS.forEach(p=>{
     const v=d[p]??4;
-    daily.innerHTML+=`
+    dailyCard.innerHTML+=`
       <div class="row">
         <span>${p[0].toUpperCase()+p.slice(1)}</span>
         <span class="pill ${cls(v)}" onclick="openPopup('${p}')">${lbl(v)}</span>
       </div>`;
-    heatmap.innerHTML+=`<div class="hm-cell ${cls(v)}"></div>`;
   });
 }
 
-datePicker.value=date;
-datePicker.onchange=e=>{date=e.target.value;loadDay()}
+async function loadHeatmap(){
+  heatmap.innerHTML="";
+  const y=current.getFullYear(),m=current.getMonth();
+  for(let d=1;d<=new Date(y,m+1,0).getDate();d++){
+    const iso=`${y}-${String(m+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    const r=await fetch(API+`?mode=detail&date=${iso}`);
+    const day=await r.json();
+    PRAYERS.forEach(p=>{
+      const cell=document.createElement("div");
+      cell.className="hm-cell "+cls(day[p]??4);
+      heatmap.appendChild(cell);
+    });
+  }
+}
 
-todayText.innerText=new Date().toLocaleDateString("ms-MY",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
-loadDay();
-log("App ready");
+function openPopup(s){selectedSolat=s;popupTitle.innerText=s.toUpperCase()+" — "+selectedDate;popup.classList.remove("hidden")}
+function closePopup(){popup.classList.add("hidden")}
+
+async function submit(v){
+  log(`POST ${selectedSolat}=${v}`);
+  await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({date:selectedDate,solat:selectedSolat,value:v})});
+  closePopup();
+  loadDay();loadHeatmap();
+}
+
+function changeMonth(n){current.setMonth(current.getMonth()+n);renderCalendar();loadHeatmap()}
+
+fullDate.innerText=new Date().toLocaleDateString("ms-MY",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+renderCalendar();loadDay();loadHeatmap();log("Ready");
 </script>
 </body>
 </html>
