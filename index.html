@@ -11,7 +11,7 @@ body{margin:0;background:#f4f4f4;font-family:-apple-system,BlinkMacSystemFont,"S
 h1{text-align:center;margin:8px 0}
 .subdate{text-align:center;color:#666;margin-bottom:12px}
 
-/* calendar */
+/* ===== CALENDAR (KEKAL) ===== */
 .calendar{background:#fff;border-radius:16px;padding:12px;margin-bottom:16px}
 .calendar-header{display:flex;justify-content:space-between;align-items:center;font-weight:600}
 .cal-btn{border:none;background:#eee;border-radius:50%;width:36px;height:36px;font-size:18px}
@@ -19,7 +19,7 @@ h1{text-align:center;margin:8px 0}
 .day-box{min-width:64px;padding:8px;text-align:center;border-radius:14px;background:#f1f1f1}
 .day-box.active{background:#000;color:#fff}
 
-/* status */
+/* ===== STATUS HARIAN ===== */
 .card{background:#fff;border-radius:16px;padding:14px;margin-bottom:16px}
 .row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eee}
 .row:last-child{border-bottom:none}
@@ -30,14 +30,17 @@ h1{text-align:center;margin:8px 0}
 .green{background:#2ecc71}
 .gold{background:#f39c12;color:#000}
 
-/* heatmap */
-.heatmap-wrapper{background:#fff;border-radius:16px;padding:12px}
-.heatmap-scroll{display:flex;gap:10px;overflow-x:auto}
+/* ===== HEATMAP ===== */
+.heatmap-card{background:#fff;border-radius:16px;padding:12px}
+.hm-wrap{display:flex;overflow-x:auto}
+.hm-left{min-width:70px}
+.hm-label{height:26px;display:flex;align-items:center;font-size:14px}
+.hm-scroll{display:flex;gap:6px}
 .hm-col{display:flex;flex-direction:column;align-items:center;gap:6px}
-.hm-day{font-weight:600;background:#eee;border-radius:8px;width:36px;text-align:center;padding:4px}
-.hm-cell{width:18px;height:18px;border-radius:4px}
+.hm-date{font-size:12px;background:#eee;border-radius:8px;width:36px;text-align:center}
+.hm-cell{width:20px;height:20px;border-radius:5px}
 
-/* popup */
+/* ===== POPUP ===== */
 .popup{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center}
 .popup-box{background:#fff;padding:16px;border-radius:16px;width:85%}
 .popup-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -62,7 +65,7 @@ h1{text-align:center;margin:8px 0}
   <div id="dayRow" class="calendar-days"></div>
 </div>
 
-<!-- STATUS -->
+<!-- STATUS HARIAN -->
 <div class="card">
   <b>Status Harian</b><br/>
   <span id="dateLabel"></span>
@@ -74,10 +77,24 @@ h1{text-align:center;margin:8px 0}
   <div class="row"><span>Isyak</span><span id="p-isyak" class="pill grey" onclick="openPopup('isyak')">Belum</span></div>
 </div>
 
-<!-- HEATMAP -->
-<div class="heatmap-wrapper">
+<!-- HEATMAP 5 ROW -->
+<div class="heatmap-card">
   <b>Heatmap Solat</b>
-  <div id="heatmap" class="heatmap-scroll"></div>
+
+  <div class="hm-wrap">
+    <!-- LABEL -->
+    <div class="hm-left">
+      <div class="hm-label"></div>
+      <div class="hm-label">Subuh</div>
+      <div class="hm-label">Zohor</div>
+      <div class="hm-label">Asar</div>
+      <div class="hm-label">Maghrib</div>
+      <div class="hm-label">Isyak</div>
+    </div>
+
+    <!-- DATA -->
+    <div id="heatmap" class="hm-scroll"></div>
+  </div>
 </div>
 
 </div>
@@ -100,12 +117,15 @@ h1{text-align:center;margin:8px 0}
 const API="https://script.google.com/macros/s/AKfycbwRxMoxud-Rsn__BoiKQyOtPc9M0n-Q-gCUmDFVkUhUmSXdCyagCb5JruxUEDzA8ulq/exec";
 const MAP=["red","yellow","green","gold","grey"];
 const LABEL=["Tak","Lewat","Awal","Jemaah","Belum"];
+const SOLAT=["subuh","zohor","asar","maghrib","isyak"];
+
 let currentDate=new Date();
 let selectedSolat=null;
 let cache={};
 
 init();
 
+/* ===== INIT ===== */
 async function init(){
   renderHeader();
   renderCalendar();
@@ -113,12 +133,14 @@ async function init(){
   await loadHeatmap();
 }
 
+/* ===== HEADER ===== */
 function renderHeader(){
   todayLabel.textContent=currentDate.toLocaleDateString("ms",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
   monthLabel.textContent=currentDate.toLocaleDateString("ms",{month:"long",year:"numeric"});
   dateLabel.textContent="Tarikh: "+fmt(currentDate);
 }
 
+/* ===== CALENDAR ===== */
 function renderCalendar(){
   dayRow.innerHTML="";
   for(let i=-2;i<=2;i++){
@@ -130,15 +152,14 @@ function renderCalendar(){
     dayRow.appendChild(el);
   }
 }
-
 function changeMonth(n){currentDate.setMonth(currentDate.getMonth()+n);init()}
 
+/* ===== STATUS ===== */
 function updatePill(s,v){
   let el=document.getElementById("p-"+s);
   el.className="pill "+MAP[v];
   el.textContent=LABEL[v];
 }
-
 async function loadDetail(){
   const k=fmt(currentDate);
   if(cache[k]){applyDetail(cache[k]);return}
@@ -147,19 +168,14 @@ async function loadDetail(){
   cache[k]=d;
   applyDetail(d);
 }
-
 function applyDetail(d){
-  ["subuh","zohor","asar","maghrib","isyak"].forEach(k=>{
-    updatePill(k,d[k]??4);
-  });
+  SOLAT.forEach(s=>updatePill(s,d[s]??4));
 }
 
-/* 🔥 HEATMAP FIXED */
+/* ===== HEATMAP 5 ROW ===== */
 async function loadHeatmap(){
   const r=await fetch(API+"?mode=summary");
   let days=(await r.json()).days;
-
-  /* SORT ikut tarikh */
   days.sort((a,b)=>a.date.localeCompare(b.date));
 
   heatmap.innerHTML="";
@@ -168,25 +184,26 @@ async function loadHeatmap(){
     col.className="hm-col";
     col.onclick=()=>{currentDate=new Date(d.date);init()};
 
-    col.innerHTML=`
-      <div class="hm-day">${new Date(d.date).getDate()}</div>
-      <div class="hm-cell ${MAP[d.status]}"></div>
-    `;
+    col.innerHTML=`<div class="hm-date">${new Date(d.date).getDate()}</div>`;
+    SOLAT.forEach(()=> {
+      let c=document.createElement("div");
+      c.className="hm-cell "+MAP[d.status];
+      col.appendChild(c);
+    });
+
     heatmap.appendChild(col);
   });
 }
 
-/* popup */
+/* ===== POPUP ===== */
 function openPopup(s){selectedSolat=s;popupTitle.textContent=s.toUpperCase();popup.style.display="flex"}
 function closePopup(){popup.style.display="none"}
-
 async function submitSolat(v){
   const k=fmt(currentDate);
   cache[k]??={date:k};
   cache[k][selectedSolat]=v;
   applyDetail(cache[k]);
   closePopup();
-
   await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({date:k,solat:selectedSolat,value:v})});
   loadHeatmap();
 }
