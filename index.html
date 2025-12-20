@@ -1,126 +1,224 @@
 <!DOCTYPE html>
 <html lang="ms">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Solat Tracker</title>
 
 <style>
-body{font-family:system-ui;background:#f2f2f2;margin:0}
-.container{max-width:420px;margin:auto;padding:12px}
-.card{background:#fff;border-radius:14px;padding:14px;margin-bottom:14px}
-.row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #eee}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  background:#f2f2f2;
+}
+.container{
+  max-width:420px;
+  margin:0 auto;
+  padding:16px;
+}
+h1{text-align:center;margin-bottom:4px}
+.date-title{text-align:center;color:#666;margin-bottom:16px}
+
+.card{
+  background:#fff;
+  border-radius:16px;
+  padding:16px;
+  margin-bottom:16px;
+}
+
+.row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px 0;
+  border-bottom:1px solid #eee;
+}
 .row:last-child{border-bottom:none}
-.pill{padding:6px 14px;border-radius:20px;color:#fff;font-size:14px;cursor:pointer}
+
+.pill{
+  padding:6px 14px;
+  border-radius:999px;
+  font-size:14px;
+  color:#fff;
+  cursor:pointer;
+}
 .grey{background:#aaa}
-.yellow{background:#f1c40f;color:#000}
 .red{background:#e74c3c}
+.yellow{background:#f1c40f;color:#000}
 .green{background:#2ecc71}
-.gold{background:#f39c12;color:#000}
 
-/* Popup */
-#popup{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;justify-content:center;align-items:center}
-#popup.hidden{display:none}
-.popup-box{background:#fff;border-radius:14px;padding:18px;width:90%;max-width:300px}
+.popup{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.5);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:999;
+}
+.hidden{display:none}
 
-/* Heatmap */
-.heat-wrap{overflow-x:auto}
-.heat-grid{display:grid;grid-template-rows:repeat(5,32px);grid-auto-columns:32px;grid-auto-flow:column;gap:6px}
-.heat-cell{width:32px;height:32px;border-radius:6px}
-.label-col{display:grid;grid-template-rows:repeat(5,32px);gap:6px;font-size:13px;padding-right:6px}
+.popup-box{
+  background:#fff;
+  border-radius:16px;
+  padding:16px;
+  width:90%;
+  max-width:320px;
+}
+.popup-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.popup-btn{
+  padding:12px;
+  border:none;
+  border-radius:12px;
+  font-size:14px;
+  cursor:pointer;
+}
+.cancel{
+  margin-top:12px;
+  width:100%;
+  padding:10px;
+  border:none;
+  border-radius:12px;
+}
 
-/* Debug */
-#debug{background:#000;color:#0f0;font-family:monospace;font-size:12px;height:140px;overflow:auto;padding:8px;border-radius:10px}
+.heatmap-wrap{
+  overflow-x:auto;
+}
+.heatmap{
+  display:grid;
+  grid-template-columns:60px repeat(auto-fit,32px);
+  gap:6px;
+  align-items:center;
+}
+.hm-label{font-size:13px}
+.hm-date{
+  text-align:center;
+  font-size:12px;
+  color:#666;
+}
+.hm-cell{
+  width:28px;
+  height:28px;
+  border-radius:6px;
+}
 </style>
 </head>
 
 <body>
 <div class="container">
+  <h1>Solat Tracker</h1>
+  <div id="todayLabel" class="date-title"></div>
 
-<h2>Solat Tracker</h2>
-<div id="dateText"></div>
+  <div class="card">
+    <h3>Status Harian</h3>
+    <div id="statusDate"></div>
 
-<div class="card" id="daily"></div>
+    <div class="row"><span>Subuh</span><span id="subuh" class="pill grey" onclick="openPopup('subuh')">Belum</span></div>
+    <div class="row"><span>Zohor</span><span id="zohor" class="pill grey" onclick="openPopup('zohor')">Belum</span></div>
+    <div class="row"><span>Asar</span><span id="asar" class="pill grey" onclick="openPopup('asar')">Belum</span></div>
+    <div class="row"><span>Maghrib</span><span id="maghrib" class="pill grey" onclick="openPopup('maghrib')">Belum</span></div>
+    <div class="row"><span>Isyak</span><span id="isyak" class="pill grey" onclick="openPopup('isyak')">Belum</span></div>
+  </div>
 
-<div class="card">
-<h3>Heatmap Solat</h3>
-<div style="display:flex">
-<div class="label-col">
-<div>Subuh</div><div>Zohor</div><div>Asar</div><div>Maghrib</div><div>Isyak</div>
-</div>
-<div class="heat-wrap">
-<div id="heatmap" class="heat-grid"></div>
-</div>
-</div>
-</div>
-
-<div id="popup" class="hidden">
-<div class="popup-box">
-<h3 id="popupTitle"></h3>
-<button onclick="submit(0)" class="pill red">Tak</button>
-<button onclick="submit(1)" class="pill yellow">Lewat</button>
-<button onclick="submit(2)" class="pill green">Awal</button>
-<button onclick="submit(3)" class="pill gold">Jemaah</button>
-<br><br>
-<button onclick="closePopup()">Cancel</button>
-</div>
+  <div class="card">
+    <h3>Heatmap Solat</h3>
+    <div class="heatmap-wrap">
+      <div id="heatmap" class="heatmap"></div>
+    </div>
+  </div>
 </div>
 
-<div class="container">
-<h3>Debug</h3>
-<div id="debug"></div>
+<!-- POPUP -->
+<div id="popup" class="popup hidden">
+  <div class="popup-box">
+    <h3 id="popupTitle"></h3>
+    <div class="popup-grid">
+      <button class="popup-btn red" onclick="submit(0)">Tak</button>
+      <button class="popup-btn yellow" onclick="submit(1)">Lewat</button>
+      <button class="popup-btn green" onclick="submit(2)">Awal</button>
+    </div>
+    <button class="cancel" onclick="closePopup()">Cancel</button>
+  </div>
 </div>
 
 <script>
 const API="https://script.google.com/macros/s/AKfycbwHxXrDrvBx27NbzEeevxIkKYTVVrdEsxV83xxpO9lKHltN3SmvCiiAR3daFTmiJt2k/exec";
-let selectedSolat=null;
+
 let currentDate=new Date().toISOString().slice(0,10);
+let selectedSolat=null;
 
-function log(t){debug.innerHTML+=`[${new Date().toLocaleTimeString()}] ${t}<br>`}
+const label=["Tak","Lewat","Awal"];
+const cls=["red","yellow","green"];
 
-function openPopup(s){selectedSolat=s;popupTitle.textContent=s.toUpperCase();popup.classList.remove("hidden")}
-function closePopup(){popup.classList.add("hidden")}
+function setPill(id,val){
+  const el=document.getElementById(id);
+  if(val==null){el.textContent="Belum";el.className="pill grey";return}
+  el.textContent=label[val];
+  el.className="pill "+cls[val];
+}
+
+function openPopup(s){
+  selectedSolat=s;
+  document.getElementById("popupTitle").textContent=s.toUpperCase();
+  document.getElementById("popup").classList.remove("hidden");
+}
+function closePopup(){
+  document.getElementById("popup").classList.add("hidden");
+}
 
 async function submit(val){
-log(`POST ${selectedSolat}=${val}`);
-const res=await fetch(API,{method:"POST",headers:{"Content-Type":"application/json"},
-body:JSON.stringify({date:currentDate,solat:selectedSolat,value:val})});
-const j=await res.json();
-if(j.status==="updated"){
-closePopup();
-await loadDetail();
-await loadHeatmap();
-}else log("ERROR update");
+  await fetch(API,{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({date:currentDate,solat:selectedSolat,value:val})
+  });
+  closePopup();
+  loadDetail();
+  loadHeatmap();
 }
 
 async function loadDetail(){
-log("loadDetail");
-const d=await fetch(`${API}?mode=detail&date=${currentDate}`).then(r=>r.json());
-daily.innerHTML="";
-["subuh","zohor","asar","maghrib","isyak"].forEach(k=>{
-const map=["grey","yellow","green","gold"];
-daily.innerHTML+=`<div class="row"><div>${k}</div>
-<div class="pill ${map[d[k]||0]}" onclick="openPopup('${k}')">${["Belum","Lewat","Awal","Jemaah"][d[k]||0]}</div></div>`;
-});
+  const r=await fetch(API+"?mode=detail&date="+currentDate);
+  const d=await r.json();
+  setPill("subuh",d.subuh);
+  setPill("zohor",d.zohor);
+  setPill("asar",d.asar);
+  setPill("maghrib",d.maghrib);
+  setPill("isyak",d.isyak);
 }
 
 async function loadHeatmap(){
-log("loadHeatmap");
-const data=await fetch(`${API}?mode=summary`).then(r=>r.json());
-heatmap.innerHTML="";
-data.days.forEach(d=>{
-for(let i=0;i<5;i++){
-const c=document.createElement("div");
-c.className="heat-cell "+["grey","yellow","green","gold"][d.status||0];
-heatmap.appendChild(c);
-}
-});
+  const res=await fetch(API+"?mode=summary");
+  const sum=await res.json();
+
+  const hm=document.getElementById("heatmap");
+  hm.innerHTML="<div></div>";
+
+  sum.days.forEach(d=>{
+    hm.innerHTML+=`<div class="hm-date">${d.date.slice(8)}</div>`;
+  });
+
+  ["subuh","zohor","asar","maghrib","isyak"].forEach(s=>{
+    hm.innerHTML+=`<div class="hm-label">${s}</div>`;
+    sum.days.forEach(async d=>{
+      const r=await fetch(API+"?mode=detail&date="+d.date);
+      const det=await r.json();
+      const v=det[s];
+      const c=v==null?"#ccc":cls[v]=="red"?"#e74c3c":cls[v]=="yellow"?"#f1c40f":"#2ecc71";
+      hm.innerHTML+=`<div class="hm-cell" style="background:${c}"></div>`;
+    });
+  });
 }
 
-async function init(){
-dateText.textContent=currentDate;
-await loadDetail();
-await loadHeatmap();
+function init(){
+  document.getElementById("todayLabel").textContent=new Date().toLocaleDateString("ms-MY",{weekday:"long",year:"numeric",month:"long",day:"numeric"});
+  document.getElementById("statusDate").textContent="Tarikh: "+currentDate;
+  loadDetail();
+  loadHeatmap();
 }
 init();
 </script>
