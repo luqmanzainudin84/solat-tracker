@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="ms">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Solat Tracker</title>
 
 <style>
-/* === UI KEKAL (TAK DIUBAH) === */
+/* ===== UI KEKAL ===== */
 body{margin:0;background:#f4f4f4;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI"}
 .container{max-width:430px;margin:auto;padding:16px}
 h1{text-align:center;margin:8px 0}
@@ -29,7 +29,7 @@ h1{text-align:center;margin:8px 0}
 .green{background:#2ecc71}
 .gold{background:#f39c12;color:#000}
 
-/* === HEATMAP UI KEKAL === */
+/* ===== HEATMAP UI KEKAL ===== */
 .heatmap-card{background:#fff;border-radius:16px;padding:12px}
 .hm-wrap{display:flex;overflow-x:auto}
 .hm-left{min-width:70px}
@@ -40,11 +40,17 @@ h1{text-align:center;margin:8px 0}
 .hm-date2{font-weight:600;background:#eee;border-radius:8px;width:36px;text-align:center}
 .hm-cell{width:20px;height:20px;border-radius:5px}
 
-.popup{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;align-items:center;justify-content:center}
-.popup-box{background:#fff;padding:16px;border-radius:16px;width:85%}
-.popup-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.popup button{border:none;padding:10px;border-radius:10px}
-.cancel{margin-top:10px;width:100%}
+/* ===== DEBUG ===== */
+.debug-card{
+  background:#000;
+  color:#0f0;
+  font-family:monospace;
+  font-size:12px;
+  padding:10px;
+  border-radius:12px;
+  max-height:140px;
+  overflow:auto;
+}
 </style>
 </head>
 
@@ -54,7 +60,7 @@ h1{text-align:center;margin:8px 0}
 <h1>Solat Tracker</h1>
 <div id="todayLabel" class="subdate"></div>
 
-<!-- CALENDAR (KEKAL) -->
+<!-- CALENDAR -->
 <div class="calendar">
   <div class="calendar-header">
     <button class="cal-btn" onclick="changeMonth(-1)">‹</button>
@@ -64,9 +70,9 @@ h1{text-align:center;margin:8px 0}
   <div id="dayRow" class="calendar-days"></div>
 </div>
 
-<!-- STATUS HARIAN -->
+<!-- STATUS -->
 <div class="card">
-  <b>Status Harian</b><br/>
+  <b>Status Harian</b><br>
   <span id="dateLabel"></span>
 
   <div class="row"><span>Subuh</span><span id="p-subuh" class="pill grey" onclick="openPopup('subuh')">Belum</span></div>
@@ -76,10 +82,9 @@ h1{text-align:center;margin:8px 0}
   <div class="row"><span>Isyak</span><span id="p-isyak" class="pill grey" onclick="openPopup('isyak')">Belum</span></div>
 </div>
 
-<!-- HEATMAP (KEKAL) -->
+<!-- HEATMAP -->
 <div class="heatmap-card">
   <b>Heatmap Solat</b>
-
   <div class="hm-wrap">
     <div class="hm-left">
       <div class="hm-label"></div>
@@ -89,15 +94,20 @@ h1{text-align:center;margin:8px 0}
       <div class="hm-label">Maghrib</div>
       <div class="hm-label">Isyak</div>
     </div>
-
     <div id="heatmap" class="hm-scroll"></div>
   </div>
+</div>
+
+<!-- DEBUG -->
+<div class="card">
+  <b>Debug</b>
+  <div id="debug" class="debug-card"></div>
 </div>
 
 </div>
 
 <!-- POPUP -->
-<div id="popup" class="popup">
+<div id="popup" class="popup" style="display:none">
   <div class="popup-box">
     <h3 id="popupTitle"></h3>
     <div class="popup-grid">
@@ -111,38 +121,49 @@ h1{text-align:center;margin:8px 0}
 </div>
 
 <script>
-/* === LOGIC SAHAJA (UI TAK DISENTUH) === */
-const API="https://script.google.com/macros/s/AKfycbwHxXrDrvBx27NbzEeevxIkKYTVVrdEsxV83xxpO9lKHltN3SmvCiiAR3daFTmiJt2k/exec";
-const SOLAT=["subuh","zohor","asar","maghrib","isyak"];
-const MAP=["red","yellow","green","gold","grey"];
-const LABEL=["Tak","Lewat","Awal","Jemaah","Belum"];
+/* ===== CONFIG ===== */
+const API = "https://script.google.com/macros/s/AKfycbwHxXrDrvBx27NbzEeevxIkKYTVVrdEsxV83xxpO9lKHltN3SmvCiiAR3daFTmiJt2k/exec";
+const SOLAT = ["subuh","zohor","asar","maghrib","isyak"];
+const MAP = ["red","yellow","green","gold","grey"];
+const LABEL = ["Tak","Lewat","Awal","Jemaah","Belum"];
 
-let currentDate=new Date();
-let selectedSolat=null;
-let cache={};   // 🔒 LOCAL SOURCE OF TRUTH
+/* ===== STATE ===== */
+let currentDate = new Date();
+let selectedSolat = null;
+let cache = {};   // LOCAL source of truth
 
-init();
+/* ===== DEBUG ===== */
+function log(msg){
+  const el = document.getElementById("debug");
+  if(!el) return;
+  el.innerHTML += `[${new Date().toLocaleTimeString()}] ${msg}<br>`;
+  el.scrollTop = el.scrollHeight;
+}
 
 /* ===== INIT ===== */
+init();
+
 async function init(){
+  log("Init start");
   renderHeader();
   renderCalendar();
-  await loadDetail();      // sekali sahaja
-  await loadHeatmap();    // baca data sebenar
+  await loadDetail();
+  await loadHeatmap();
+  log("Init done");
 }
 
 /* ===== HEADER ===== */
 function renderHeader(){
-  todayLabel.textContent=currentDate.toLocaleDateString("ms",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
-  monthLabel.textContent=currentDate.toLocaleDateString("ms",{month:"long",year:"numeric"});
-  dateLabel.textContent="Tarikh: "+fmt(currentDate);
+  todayLabel.textContent = currentDate.toLocaleDateString("ms",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+  monthLabel.textContent = currentDate.toLocaleDateString("ms",{month:"long",year:"numeric"});
+  dateLabel.textContent = "Tarikh: " + fmt(currentDate);
 }
 
 /* ===== CALENDAR ===== */
 function renderCalendar(){
   dayRow.innerHTML="";
   for(let i=-2;i<=2;i++){
-    let d=new Date(currentDate);d.setDate(d.getDate()+i);
+    let d=new Date(currentDate); d.setDate(d.getDate()+i);
     let el=document.createElement("div");
     el.className="day-box"+(i===0?" active":"");
     el.innerHTML=`${d.toLocaleDateString("ms",{weekday:"short"})}<br><b>${d.getDate()}</b>`;
@@ -154,14 +175,19 @@ function changeMonth(n){currentDate.setMonth(currentDate.getMonth()+n);init()}
 
 /* ===== STATUS ===== */
 function updatePill(s,v){
-  let el=document.getElementById("p-"+s);
+  const el=document.getElementById("p-"+s);
   el.className="pill "+MAP[v];
   el.textContent=LABEL[v];
 }
 
 async function loadDetail(){
   const k=fmt(currentDate);
-  if(cache[k]){applyDetail(cache[k]);return}
+  if(cache[k]){
+    log("Detail cache hit "+k);
+    applyDetail(cache[k]);
+    return;
+  }
+  log("Fetch detail "+k);
   const r=await fetch(API+"?mode=detail&date="+k,{cache:"no-store"});
   const d=await r.json();
   cache[k]=d;
@@ -169,50 +195,56 @@ async function loadDetail(){
 }
 
 function applyDetail(d){
-  SOLAT.forEach(s=>updatePill(s,d[s]??4));
+  SOLAT.forEach(s=>updatePill(s,d[s] ?? 4));
 }
 
-/* ===== HEATMAP (DATA SEBENAR, BUKAN SUMMARY) ===== */
+/* ===== HEATMAP ===== */
 async function loadHeatmap(){
-  const r=await fetch(API+"?mode=heatmap",{cache:"no-store"});
-  const days=r.ok?(await r.json()).days:[];
-  heatmap.innerHTML="";
+  log("Load heatmap");
+  const r = await fetch(API+"?mode=heatmap",{cache:"no-store"});
+  const json = await r.json();
+  const days = Array.isArray(json.days) ? json.days : [];
+
+  heatmap.innerHTML = "";
 
   days.forEach(d=>{
-    const col=document.createElement("div");
-    col.className="hm-col";
-    col.onclick=()=>{currentDate=new Date(d.date);init()};
+    const col = document.createElement("div");
+    col.className = "hm-col";
+    col.onclick = ()=>{ currentDate = new Date(d.date); init(); };
 
-    col.innerHTML=`
+    col.innerHTML = `
       <div class="hm-date1">${new Date(d.date).toLocaleDateString("ms",{month:"short"})}</div>
       <div class="hm-date2">${new Date(d.date).getDate()}</div>
     `;
 
     SOLAT.forEach(s=>{
-      const v=d[s]??4;
-      const c=document.createElement("div");
-      c.className="hm-cell "+MAP[v];
-      col.appendChild(c);
+      const v = d[s] ?? 4;
+      const cell = document.createElement("div");
+      cell.className = "hm-cell "+MAP[v];
+      col.appendChild(cell);
     });
 
     heatmap.appendChild(col);
   });
+
+  log("Heatmap rendered: "+days.length+" days");
 }
 
 /* ===== POPUP ===== */
-function openPopup(s){selectedSolat=s;popupTitle.textContent=s.toUpperCase();popup.style.display="flex"}
-function closePopup(){popup.style.display="none"}
+function openPopup(s){ selectedSolat=s; popupTitle.textContent=s.toUpperCase(); popup.style.display="flex"; }
+function closePopup(){ popup.style.display="none"; }
 
-async function submitSolat(v){
+function submitSolat(v){
   const k=fmt(currentDate);
 
-  /* 🔒 UPDATE LOCAL SAHAJA – TAK FETCH BALIK */
-  cache[k]??={date:k};
-  cache[k][selectedSolat]=v;
+  // UPDATE LOCAL ONLY (NO REFETCH)
+  cache[k] ??= {date:k};
+  cache[k][selectedSolat] = v;
   applyDetail(cache[k]);
   closePopup();
+  log("Local update "+selectedSolat+"="+v);
 
-  /* POST BACKGROUND */
+  // POST background
   fetch(API,{
     method:"POST",
     headers:{"Content-Type":"text/plain"},
@@ -220,7 +252,8 @@ async function submitSolat(v){
   });
 }
 
-function fmt(d){return d.toISOString().slice(0,10)}
+function fmt(d){ return d.toISOString().slice(0,10); }
 </script>
+
 </body>
 </html>
