@@ -40,16 +40,34 @@ h1{text-align:center;margin:8px 0}
 .hm-date2{font-weight:600;background:#eee;border-radius:8px;width:36px;text-align:center}
 .hm-cell{width:20px;height:20px;border-radius:5px}
 
+/* ===== POPUP (TENGAH) ===== */
+.popup{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.4);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+}
+.popup-box{
+  background:#fff;
+  padding:16px;
+  border-radius:16px;
+  width:85%;
+  max-width:320px;
+}
+.popup-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.popup button{border:none;padding:10px;border-radius:10px}
+.cancel{margin-top:10px;width:100%}
+
 /* ===== DEBUG ===== */
 .debug-card{
-  background:#000;
-  color:#0f0;
+  background:#000;color:#0f0;
   font-family:monospace;
   font-size:12px;
-  padding:10px;
-  border-radius:12px;
-  max-height:140px;
-  overflow:auto;
+  padding:10px;border-radius:12px;
+  max-height:140px;overflow:auto;
 }
 </style>
 </head>
@@ -107,7 +125,7 @@ h1{text-align:center;margin:8px 0}
 </div>
 
 <!-- POPUP -->
-<div id="popup" class="popup" style="display:none">
+<div id="popup" class="popup">
   <div class="popup-box">
     <h3 id="popupTitle"></h3>
     <div class="popup-grid">
@@ -122,48 +140,45 @@ h1{text-align:center;margin:8px 0}
 
 <script>
 /* ===== CONFIG ===== */
-const API = "https://script.google.com/macros/s/AKfycbwHxXrDrvBx27NbzEeevxIkKYTVVrdEsxV83xxpO9lKHltN3SmvCiiAR3daFTmiJt2k/exec";
-const SOLAT = ["subuh","zohor","asar","maghrib","isyak"];
-const MAP = ["red","yellow","green","gold","grey"];
-const LABEL = ["Tak","Lewat","Awal","Jemaah","Belum"];
+const API="https://script.google.com/macros/s/AKfycbwRxMoxud-Rsn__BoiKQyOtPc9M0n-Q-gCUmDFVkUhUmSXdCyagCb5JruxUEDzA8ulq/exec";
+const SOLAT=["subuh","zohor","asar","maghrib","isyak"];
+const MAP=["red","yellow","green","gold","grey"];
+const LABEL=["Tak","Lewat","Awal","Jemaah","Belum"];
 
 /* ===== STATE ===== */
-let currentDate = new Date();
-let selectedSolat = null;
-let cache = {};   // LOCAL source of truth
+let currentDate=new Date();
+let selectedSolat=null;
+let cache={};
 
 /* ===== DEBUG ===== */
 function log(msg){
-  const el = document.getElementById("debug");
-  if(!el) return;
-  el.innerHTML += `[${new Date().toLocaleTimeString()}] ${msg}<br>`;
-  el.scrollTop = el.scrollHeight;
+  const el=document.getElementById("debug");
+  el.innerHTML+=`[${new Date().toLocaleTimeString()}] ${msg}<br>`;
+  el.scrollTop=el.scrollHeight;
 }
 
 /* ===== INIT ===== */
 init();
-
 async function init(){
-  log("Init start");
+  log("Init");
   renderHeader();
   renderCalendar();
   await loadDetail();
   await loadHeatmap();
-  log("Init done");
 }
 
 /* ===== HEADER ===== */
 function renderHeader(){
-  todayLabel.textContent = currentDate.toLocaleDateString("ms",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
-  monthLabel.textContent = currentDate.toLocaleDateString("ms",{month:"long",year:"numeric"});
-  dateLabel.textContent = "Tarikh: " + fmt(currentDate);
+  todayLabel.textContent=currentDate.toLocaleDateString("ms",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+  monthLabel.textContent=currentDate.toLocaleDateString("ms",{month:"long",year:"numeric"});
+  dateLabel.textContent="Tarikh: "+fmt(currentDate);
 }
 
 /* ===== CALENDAR ===== */
 function renderCalendar(){
   dayRow.innerHTML="";
   for(let i=-2;i<=2;i++){
-    let d=new Date(currentDate); d.setDate(d.getDate()+i);
+    let d=new Date(currentDate);d.setDate(d.getDate()+i);
     let el=document.createElement("div");
     el.className="day-box"+(i===0?" active":"");
     el.innerHTML=`${d.toLocaleDateString("ms",{weekday:"short"})}<br><b>${d.getDate()}</b>`;
@@ -182,18 +197,13 @@ function updatePill(s,v){
 
 async function loadDetail(){
   const k=fmt(currentDate);
-  if(cache[k]){
-    log("Detail cache hit "+k);
-    applyDetail(cache[k]);
-    return;
-  }
+  if(cache[k]){applyDetail(cache[k]);return}
   log("Fetch detail "+k);
   const r=await fetch(API+"?mode=detail&date="+k,{cache:"no-store"});
   const d=await r.json();
   cache[k]=d;
   applyDetail(d);
 }
-
 function applyDetail(d){
   SOLAT.forEach(s=>updatePill(s,d[s] ?? 4));
 }
@@ -201,50 +211,46 @@ function applyDetail(d){
 /* ===== HEATMAP ===== */
 async function loadHeatmap(){
   log("Load heatmap");
-  const r = await fetch(API+"?mode=heatmap",{cache:"no-store"});
-  const json = await r.json();
-  const days = Array.isArray(json.days) ? json.days : [];
-
-  heatmap.innerHTML = "";
+  const r=await fetch(API+"?mode=heatmap",{cache:"no-store"});
+  const j=await r.json();
+  const days=Array.isArray(j.days)?j.days:[];
+  heatmap.innerHTML="";
 
   days.forEach(d=>{
-    const col = document.createElement("div");
-    col.className = "hm-col";
-    col.onclick = ()=>{ currentDate = new Date(d.date); init(); };
+    const col=document.createElement("div");
+    col.className="hm-col";
+    col.onclick=()=>{currentDate=new Date(d.date);init()};
 
-    col.innerHTML = `
+    col.innerHTML=`
       <div class="hm-date1">${new Date(d.date).toLocaleDateString("ms",{month:"short"})}</div>
       <div class="hm-date2">${new Date(d.date).getDate()}</div>
     `;
 
     SOLAT.forEach(s=>{
-      const v = d[s] ?? 4;
-      const cell = document.createElement("div");
-      cell.className = "hm-cell "+MAP[v];
-      col.appendChild(cell);
+      const v=(d[s]!==undefined)?d[s]:4;
+      const c=document.createElement("div");
+      c.className="hm-cell "+MAP[v];
+      col.appendChild(c);
     });
 
     heatmap.appendChild(col);
   });
 
-  log("Heatmap rendered: "+days.length+" days");
+  log("Heatmap rendered "+days.length+" days");
 }
 
 /* ===== POPUP ===== */
-function openPopup(s){ selectedSolat=s; popupTitle.textContent=s.toUpperCase(); popup.style.display="flex"; }
-function closePopup(){ popup.style.display="none"; }
+function openPopup(s){selectedSolat=s;popupTitle.textContent=s.toUpperCase();popup.style.display="flex"}
+function closePopup(){popup.style.display="none"}
 
 function submitSolat(v){
   const k=fmt(currentDate);
-
-  // UPDATE LOCAL ONLY (NO REFETCH)
-  cache[k] ??= {date:k};
-  cache[k][selectedSolat] = v;
+  cache[k]??={date:k};
+  cache[k][selectedSolat]=v;
   applyDetail(cache[k]);
   closePopup();
   log("Local update "+selectedSolat+"="+v);
 
-  // POST background
   fetch(API,{
     method:"POST",
     headers:{"Content-Type":"text/plain"},
@@ -252,7 +258,7 @@ function submitSolat(v){
   });
 }
 
-function fmt(d){ return d.toISOString().slice(0,10); }
+function fmt(d){return d.toISOString().slice(0,10)}
 </script>
 
 </body>
