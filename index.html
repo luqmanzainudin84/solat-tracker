@@ -1,226 +1,324 @@
 <!DOCTYPE html>
 <html lang="ms">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Solat Tracker</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Solat Tracker Pro</title>
+  <style>
+    :root {
+      --bg: #f2f2f2;
+      --card: #ffffff;
+      --shadow: 0 10px 25px rgba(0,0,0,.08);
+      --line: #ececec;
+      --text: #111;
+      --muted: #666;
+      --tak: #e24a3b;     /* 0 */
+      --lewat: #f2c230;   /* 1 */
+      --awal: #2fbf71;    /* 2 */
+      --jemaah: #2fbf71;  /* 3 */
+      --belum: #9aa0a6;   /* 4 */
+      --gold: #d4a72c;
+    }
 
-<style>
-body{
-  margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
-  background:#f2f2f2;
-}
-.container{
-  max-width:420px;
-  margin:0 auto;
-  padding:16px;
-}
-h1{text-align:center;margin-bottom:4px}
-.date-title{text-align:center;color:#666;margin-bottom:16px}
+    body {
+      margin: 0;
+      background: var(--bg);
+      font-family: system-ui, -apple-system, sans-serif;
+      color: var(--text);
+    }
 
-.card{
-  background:#fff;
-  border-radius:16px;
-  padding:16px;
-  margin-bottom:16px;
-}
+    .wrap { max-width: 520px; margin: 0 auto; padding: 18px 14px 30px; }
+    .title { text-align: center; font-weight: 800; font-size: 32px; margin: 10px 0 0; }
+    .subtitle { text-align: center; color: var(--muted); margin: 6px 0 18px; font-size: 18px; font-weight: 500; }
 
-.row{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:12px 0;
-  border-bottom:1px solid #eee;
-}
-.row:last-child{border-bottom:none}
+    .card {
+      background: var(--card);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+      padding: 16px;
+      margin-bottom: 14px;
+    }
 
-.pill{
-  padding:6px 14px;
-  border-radius:999px;
-  font-size:14px;
-  color:#fff;
-  cursor:pointer;
-}
-.grey{background:#aaa}
-.red{background:#e74c3c}
-.yellow{background:#f1c40f;color:#000}
-.green{background:#2ecc71}
+    .monthBar { display: flex; align-items: center; gap: 10px; padding: 8px; }
+    .monthBtn { width: 44px; height: 44px; border-radius: 12px; border: 0; background: #f7f7f7; font-size: 20px; cursor: pointer; }
+    .monthText { flex: 1; text-align: center; font-size: 20px; font-weight: 800; }
 
-.popup{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.5);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  z-index:999;
-}
-.hidden{display:none}
+    .strip {
+      display: flex; gap: 10px; overflow-x: auto; padding: 10px 0;
+      scrollbar-width: none; -webkit-overflow-scrolling: touch;
+    }
+    .strip::-webkit-scrollbar { display: none; }
 
-.popup-box{
-  background:#fff;
-  border-radius:16px;
-  padding:16px;
-  width:90%;
-  max-width:320px;
-}
-.popup-grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-}
-.popup-btn{
-  padding:12px;
-  border:none;
-  border-radius:12px;
-  font-size:14px;
-  cursor:pointer;
-}
-.cancel{
-  margin-top:12px;
-  width:100%;
-  padding:10px;
-  border:none;
-  border-radius:12px;
-}
+    .dayChip {
+      min-width: 75px; background: #f5f5f5; border-radius: 16px; padding: 10px;
+      text-align: center; cursor: pointer; user-select: none; border: 2px solid transparent;
+    }
+    .dayChip.active { background: #111; color: #fff; }
+    .dayChip .dow { font-size: 14px; font-weight: 700; opacity: 0.7; }
+    .dayChip .dnum { font-weight: 900; font-size: 24px; }
 
-.heatmap-wrap{
-  overflow-x:auto;
-}
-.heatmap{
-  display:grid;
-  grid-template-columns:60px repeat(auto-fit,32px);
-  gap:6px;
-  align-items:center;
-}
-.hm-label{font-size:13px}
-.hm-date{
-  text-align:center;
-  font-size:12px;
-  color:#666;
-}
-.hm-cell{
-  width:28px;
-  height:28px;
-  border-radius:6px;
-}
-</style>
+    .statusHead { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); padding-bottom: 12px; margin-bottom: 8px; }
+    .statusHead h3 { margin: 0; font-size: 22px; font-weight: 800; }
+    .dateLine { font-size: 14px; color: #666; font-weight: 600; }
+
+    .row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--line); }
+    .row:last-child { border-bottom: 0; }
+    .row .name { font-size: 20px; font-weight: 650; }
+
+    .pill {
+      min-width: 90px; text-align: center; padding: 8px 14px; border-radius: 999px;
+      color: #fff; font-weight: 800; font-size: 14px; cursor: pointer; transition: 0.2s;
+    }
+    .pill:active { transform: scale(0.95); }
+    .p-belum { background: var(--belum); }
+    .p-tak { background: var(--tak); }
+    .p-lewat { background: var(--lewat); color: #111; }
+    .p-awal { background: var(--awal); }
+    .p-jemaah { background: var(--jemaah); position: relative; border-bottom: 4px solid var(--gold); }
+
+    .overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+      display: none; align-items: center; justify-content: center; z-index: 9999;
+    }
+    .overlay.show { display: flex; }
+    .popup { width: 90%; max-width: 400px; background: #fff; border-radius: 20px; padding: 20px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .btn { border: 0; border-radius: 12px; padding: 15px; font-size: 16px; font-weight: 800; cursor: pointer; color: #fff; }
+    .cancel { margin-top: 15px; width: 100%; border: 0; background: #eee; border-radius: 12px; padding: 12px; font-weight: 700; cursor: pointer; }
+
+    .heatWrap { overflow-x: auto; padding: 10px 0; scroll-behavior: smooth; }
+    .heatGrid { display: flex; gap: 8px; width: max-content; }
+    .col { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .dateBox1 { font-size: 11px; font-weight: 700; color: #888; }
+    .dateBox2 { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: #f0f0f0; border-radius: 8px; font-weight: 800; margin-bottom: 4px; }
+    .cell { width: 28px; height: 28px; border-radius: 6px; cursor: pointer; }
+    .c-tak { background: var(--tak); }
+    .c-lewat { background: var(--lewat); }
+    .c-awal { background: var(--awal); }
+    .c-jemaah { background: var(--awal); box-shadow: inset 0 -4px 0 var(--gold); }
+    .c-belum { background: var(--belum); opacity: 0.3; }
+
+    .debugCard { background: #000; color: #0f0; font-family: monospace; font-size: 11px; padding: 10px; border-radius: 10px; margin-top: 15px; max-height: 100px; overflow: auto; }
+    
+    /* Loading state */
+    .loading-overlay { display: none; position: fixed; top: 10px; right: 10px; background: #111; color: #fff; padding: 5px 15px; border-radius: 20px; font-size: 12px; z-index: 10000; }
+  </style>
 </head>
 
 <body>
-<div class="container">
-  <h1>Solat Tracker</h1>
-  <div id="todayLabel" class="date-title"></div>
+  <div id="loading" class="loading-overlay">Memuatkan...</div>
 
-  <div class="card">
-    <h3>Status Harian</h3>
-    <div id="statusDate"></div>
+  <div class="wrap">
+    <div class="title">Solat Tracker</div>
+    <div id="topDateText" class="subtitle">—</div>
 
-    <div class="row"><span>Subuh</span><span id="subuh" class="pill grey" onclick="openPopup('subuh')">Belum</span></div>
-    <div class="row"><span>Zohor</span><span id="zohor" class="pill grey" onclick="openPopup('zohor')">Belum</span></div>
-    <div class="row"><span>Asar</span><span id="asar" class="pill grey" onclick="openPopup('asar')">Belum</span></div>
-    <div class="row"><span>Maghrib</span><span id="maghrib" class="pill grey" onclick="openPopup('maghrib')">Belum</span></div>
-    <div class="row"><span>Isyak</span><span id="isyak" class="pill grey" onclick="openPopup('isyak')">Belum</span></div>
-  </div>
+    <div class="card">
+      <div class="monthBar">
+        <button class="monthBtn" id="prevMonthBtn">‹</button>
+        <div class="monthText" id="monthText">—</div>
+        <button class="monthBtn" id="nextMonthBtn">›</button>
+      </div>
+      <div class="strip" id="dayStrip"></div>
+    </div>
 
-  <div class="card">
-    <h3>Heatmap Solat</h3>
-    <div class="heatmap-wrap">
-      <div id="heatmap" class="heatmap"></div>
+    <div class="card">
+      <div class="statusHead">
+        <div>
+          <h3>Status Harian</h3>
+          <div class="dateLine" id="selectedDateLine">—</div>
+        </div>
+      </div>
+      <div class="rows" id="statusRows"></div>
+    </div>
+
+    <div class="card">
+      <div style="font-weight:800; font-size:18px; margin-bottom:10px;">Heatmap</div>
+      <div class="heatWrap">
+        <div class="heatGrid" id="heatGrid"></div>
+      </div>
+      <div id="debug" class="debugCard"></div>
     </div>
   </div>
-</div>
 
-<!-- POPUP -->
-<div id="popup" class="popup hidden">
-  <div class="popup-box">
-    <h3 id="popupTitle"></h3>
-    <div class="popup-grid">
-      <button class="popup-btn red" onclick="submit(0)">Tak</button>
-      <button class="popup-btn yellow" onclick="submit(1)">Lewat</button>
-      <button class="popup-btn green" onclick="submit(2)">Awal</button>
+  <div class="overlay" id="overlay">
+    <div class="popup">
+      <h4 id="popTitle" style="text-align:center; margin-top:0;">PILIH STATUS</h4>
+      <div class="grid">
+        <button class="btn" style="background:var(--tak)" onclick="submitStatus(0)">✖ Tak Solat</button>
+        <button class="btn" style="background:var(--lewat); color:#111" onclick="submitStatus(1)">⏱ Lewat</button>
+        <button class="btn" style="background:var(--awal)" onclick="submitStatus(2)">✔ Awal</button>
+        <button class="btn" style="background:var(--gold); color:#111" onclick="submitStatus(3)">⭐ Jemaah</button>
+      </div>
+      <button class="cancel" onclick="closePopup()">Batal</button>
     </div>
-    <button class="cancel" onclick="closePopup()">Cancel</button>
   </div>
-</div>
 
-<script>
-const API="https://script.google.com/macros/s/AKfycbwHxXrDrvBx27NbzEeevxIkKYTVVrdEsxV83xxpO9lKHltN3SmvCiiAR3daFTmiJt2k/exec";
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbzWQ3AFmVBDoTod5xg-qTE2aBhHm31nXF-NIC1WK1f-kacoH71OKesRwEjRBWkgJJhW/exec";
+    
+    const SOLAT = [
+      { key:"subuh", label:"Subuh" },
+      { key:"zohor", label:"Zohor" },
+      { key:"asar", label:"Asar" },
+      { key:"maghrib", label:"Maghrib" },
+      { key:"isyak", label:"Isyak" }
+    ];
 
-let currentDate=new Date().toISOString().slice(0,10);
-let selectedSolat=null;
+    const STATUS_LABEL = ["Tak", "Lewat", "Awal", "Jemaah", "Belum"];
+    const PILL_CLASS = ["p-tak","p-lewat","p-awal","p-jemaah","p-belum"];
+    const CELL_CLASS = ["c-tak","c-lewat","c-awal","c-jemaah","c-belum"];
 
-const label=["Tak","Lewat","Awal"];
-const cls=["red","yellow","green"];
+    let selectedDate = new Date();
+    let viewYear = selectedDate.getFullYear();
+    let viewMonth = selectedDate.getMonth();
+    let heatDataMap = new Map();
+    let popupSolatKey = null;
 
-function setPill(id,val){
-  const el=document.getElementById(id);
-  if(val==null){el.textContent="Belum";el.className="pill grey";return}
-  el.textContent=label[val];
-  el.className="pill "+cls[val];
-}
+    // --- UTILS ---
+    function log(m) { 
+      const d = document.getElementById("debug");
+      d.innerHTML = `> ${m}<br>` + d.innerHTML;
+    }
 
-function openPopup(s){
-  selectedSolat=s;
-  document.getElementById("popupTitle").textContent=s.toUpperCase();
-  document.getElementById("popup").classList.remove("hidden");
-}
-function closePopup(){
-  document.getElementById("popup").classList.add("hidden");
-}
+    function ymd(date) {
+      const d = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
+      return d.toISOString().split('T')[0];
+    }
 
-async function submit(val){
-  await fetch(API,{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({date:currentDate,solat:selectedSolat,value:val})
-  });
-  closePopup();
-  loadDetail();
-  loadHeatmap();
-}
+    function formatMY(d) {
+      return d.toLocaleDateString('ms-MY', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+    }
 
-async function loadDetail(){
-  const r=await fetch(API+"?mode=detail&date="+currentDate);
-  const d=await r.json();
-  setPill("subuh",d.subuh);
-  setPill("zohor",d.zohor);
-  setPill("asar",d.asar);
-  setPill("maghrib",d.maghrib);
-  setPill("isyak",d.isyak);
-}
+    function showLoading(s) { document.getElementById("loading").style.display = s ? "block" : "none"; }
 
-async function loadHeatmap(){
-  const res=await fetch(API+"?mode=summary");
-  const sum=await res.json();
+    // --- API ---
+    async function api(params, method="GET", body=null) {
+      showLoading(true);
+      const url = method === "GET" ? `${API_URL}?${new URLSearchParams(params)}` : API_URL;
+      try {
+        const res = await fetch(url, {
+          method,
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: body ? JSON.stringify(body) : null
+        });
+        const data = await res.json();
+        showLoading(false);
+        return data;
+      } catch (e) {
+        log("Error: " + e);
+        showLoading(false);
+        return null;
+      }
+    }
 
-  const hm=document.getElementById("heatmap");
-  hm.innerHTML="<div></div>";
+    // --- UI RENDERING ---
+    function render() {
+      document.getElementById("topDateText").textContent = formatMY(selectedDate);
+      document.getElementById("monthText").textContent = new Date(viewYear, viewMonth).toLocaleDateString('ms-MY', { month:'long', year:'numeric' });
+      document.getElementById("selectedDateLine").textContent = "Tarikh: " + ymd(selectedDate);
+      
+      buildDayStrip();
+      loadDetail();
+    }
 
-  sum.days.forEach(d=>{
-    hm.innerHTML+=`<div class="hm-date">${d.date.slice(8)}</div>`;
-  });
+    function buildDayStrip() {
+      const strip = document.getElementById("dayStrip");
+      strip.innerHTML = "";
+      const start = new Date(selectedDate);
+      start.setDate(start.getDate() - 2);
 
-  ["subuh","zohor","asar","maghrib","isyak"].forEach(s=>{
-    hm.innerHTML+=`<div class="hm-label">${s}</div>`;
-    sum.days.forEach(async d=>{
-      const r=await fetch(API+"?mode=detail&date="+d.date);
-      const det=await r.json();
-      const v=det[s];
-      const c=v==null?"#ccc":cls[v]=="red"?"#e74c3c":cls[v]=="yellow"?"#f1c40f":"#2ecc71";
-      hm.innerHTML+=`<div class="hm-cell" style="background:${c}"></div>`;
-    });
-  });
-}
+      for(let i=0; i<5; i++) {
+        const d = new Date(start);
+        d.setDate(start.getDate() + i);
+        const active = ymd(d) === ymd(selectedDate) ? "active" : "";
+        const chip = document.createElement("div");
+        chip.className = `dayChip ${active}`;
+        chip.innerHTML = `<div class="dow">${d.toLocaleDateString('ms-MY',{weekday:'short'})}</div><div class="dnum">${d.getDate()}</div>`;
+        chip.onclick = () => { selectedDate = d; render(); };
+        strip.appendChild(chip);
+      }
+    }
 
-function init(){
-  document.getElementById("todayLabel").textContent=new Date().toLocaleDateString("ms-MY",{weekday:"long",year:"numeric",month:"long",day:"numeric"});
-  document.getElementById("statusDate").textContent="Tarikh: "+currentDate;
-  loadDetail();
-  loadHeatmap();
-}
-init();
-</script>
+    async function loadDetail() {
+      const res = await api({ mode:"detail", date: ymd(selectedDate) });
+      const rows = document.getElementById("statusRows");
+      rows.innerHTML = "";
+      
+      SOLAT.forEach(s => {
+        const val = res ? res[s.key] : 4;
+        const row = document.createElement("div");
+        row.className = "row";
+        row.innerHTML = `
+          <div class="name">${s.label}</div>
+          <div class="pill ${PILL_CLASS[val]}" onclick="openPopup('${s.key}')">${STATUS_LABEL[val]}</div>
+        `;
+        rows.appendChild(row);
+      });
+    }
+
+    async function loadHeatmap() {
+      const today = new Date();
+      const start = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+      const end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+      
+      const res = await api({ mode:"heatmap", start: ymd(start), end: ymd(end) });
+      if(!res) return;
+
+      const grid = document.getElementById("heatGrid");
+      grid.innerHTML = "";
+      
+      const d = new Date(start);
+      while(d <= end) {
+        const dateStr = ymd(d);
+        const dayData = res.days.find(x => x.date === dateStr) || {subuh:4, zohor:4, asar:4, maghrib:4, isyak:4};
+        
+        const col = document.createElement("div");
+        col.className = "col";
+        col.innerHTML = `<div class="dateBox1">${d.toLocaleDateString('ms-MY',{weekday:'short'})}</div><div class="dateBox2">${d.getDate()}</div>`;
+        
+        SOLAT.forEach(s => {
+          const v = dayData[s.key];
+          const cell = document.createElement("div");
+          cell.className = `cell ${CELL_CLASS[v]}`;
+          cell.title = `${dateStr} - ${s.label}`;
+          col.appendChild(cell);
+        });
+        
+        grid.appendChild(col);
+        d.setDate(d.getDate() + 1);
+      }
+      
+      // Auto scroll to today
+      setTimeout(() => {
+        const todayBox = [...grid.querySelectorAll('.dateBox2')].find(x => x.innerText == today.getDate());
+        if(todayBox) todayBox.scrollIntoView({ behavior:'smooth', inline:'center' });
+      }, 500);
+    }
+
+    // --- ACTIONS ---
+    function openPopup(key) { popupSolatKey = key; document.getElementById("overlay").classList.add("show"); }
+    function closePopup() { document.getElementById("overlay").classList.remove("show"); }
+
+    async function submitStatus(val) {
+      const dateStr = ymd(selectedDate);
+      closePopup();
+      const res = await api({}, "POST", { date: dateStr, solat: popupSolatKey, value: val });
+      if(res) {
+        log(`Berjaya dikemaskini: ${popupSolatKey}`);
+        render();
+        loadHeatmap();
+      }
+    }
+
+    document.getElementById("prevMonthBtn").onclick = () => { selectedDate.setMonth(selectedDate.getMonth()-1); render(); };
+    document.getElementById("nextMonthBtn").onclick = () => { selectedDate.setMonth(selectedDate.getMonth()+1); render(); };
+
+    // --- INIT ---
+    window.onload = () => {
+      render();
+      loadHeatmap();
+      log("Sistem Sedia.");
+    };
+  </script>
 </body>
 </html>
