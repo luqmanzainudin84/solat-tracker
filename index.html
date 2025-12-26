@@ -1,255 +1,249 @@
 <!DOCTYPE html>
 <html lang="ms">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Solat Tracker</title>
-  <style>
-    :root {
-      --bg: #f2f2f2;
-      --card: #ffffff;
-      --text: #111;
-      --muted: #666;
-      --tak: #e24a3b;
-      --lewat: #f2c230;
-      --awal: #2fbf71;
-      --jemaah: #2fbf71;
-      --belum: #9aa0a6;
-      --gold: #d4a72c;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Solat Tracker</title>
 
-    body { margin: 0; background: var(--bg); font-family: system-ui, sans-serif; color: var(--text); }
-    .wrap { max-width: 520px; margin: 0 auto; padding: 15px; }
-    
-    .card { background: var(--card); border-radius: 20px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+<style>
+/* ===== UI KEKAL ===== */
+body{margin:0;background:#f4f4f4;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI"}
+.container{max-width:430px;margin:auto;padding:16px}
+h1{text-align:center;margin:8px 0}
+.subdate{text-align:center;color:#666;margin-bottom:12px}
 
-    /* Bar Tarikh Boleh Tatal (Horizontal Scroll) */
-    .date-scroll-wrapper {
-      display: flex;
-      overflow-x: auto;
-      gap: 12px;
-      padding: 10px 5px;
-      scrollbar-width: none;
-      -webkit-overflow-scrolling: touch;
-    }
-    .date-scroll-wrapper::-webkit-scrollbar { display: none; }
+.calendar{background:#fff;border-radius:16px;padding:12px;margin-bottom:16px}
+.calendar-header{display:flex;justify-content:space-between;align-items:center;font-weight:600}
+.cal-btn{border:none;background:#eee;border-radius:50%;width:36px;height:36px;font-size:18px}
+.calendar-days{display:flex;gap:8px;margin-top:10px;overflow-x:auto}
+.day-box{min-width:64px;padding:8px;text-align:center;border-radius:14px;background:#f1f1f1}
+.day-box.active{background:#000;color:#fff}
 
-    .date-chip {
-      min-width: 65px;
-      padding: 12px 8px;
-      background: #f0f0f0;
-      border-radius: 15px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.2s;
-      border: 2px solid transparent;
-    }
-    .date-chip.active { background: #111; color: #fff; transform: scale(1.05); }
-    .date-chip span { display: block; font-size: 12px; font-weight: 600; text-transform: uppercase; margin-bottom: 4px; }
-    .date-chip b { font-size: 22px; display: block; line-height: 1; }
+.card{background:#fff;border-radius:16px;padding:14px;margin-bottom:16px}
+.row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eee}
+.row:last-child{border-bottom:none}
+.pill{padding:6px 14px;border-radius:14px;color:#fff;font-size:14px}
+.grey{background:#aaa}
+.red{background:#e74c3c}
+.yellow{background:#f1c40f;color:#000}
+.green{background:#2ecc71}
+.gold{background:#f39c12;color:#000}
 
-    /* Row Solat */
-    .row { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid #eee; }
-    .row:last-child { border-bottom: 0; }
-    .row b { font-size: 20px; text-transform: capitalize; }
-    
-    .pill { min-width: 100px; text-align: center; padding: 10px; border-radius: 25px; color: #fff; font-weight: 800; cursor: pointer; font-size: 15px; transition: 0.2s; }
-    .pill:active { transform: scale(0.9); }
-    
-    .p-0 { background: var(--tak); }
-    .p-1 { background: var(--lewat); color: #111; }
-    .p-2 { background: var(--awal); }
-    .p-3 { background: var(--awal); box-shadow: inset 0 -5px 0 var(--gold); }
-    .p-4 { background: var(--belum); }
+/* ===== HEATMAP UI KEKAL ===== */
+.heatmap-card{background:#fff;border-radius:16px;padding:12px}
+.hm-wrap{display:flex;overflow-x:auto}
+.hm-left{min-width:70px}
+.hm-label{height:26px;display:flex;align-items:center;font-size:14px}
+.hm-scroll{display:flex;gap:6px}
+.hm-col{display:flex;flex-direction:column;align-items:center;gap:6px}
+.hm-date1{font-size:11px;color:#666}
+.hm-date2{font-weight:600;background:#eee;border-radius:8px;width:36px;text-align:center}
+.hm-cell{width:20px;height:20px;border-radius:5px}
 
-    /* Heatmap */
-    .heat-scroll { overflow-x: auto; padding: 10px 0; scrollbar-width: none; }
-    .heat-grid { display: flex; gap: 6px; width: max-content; }
-    .heat-col { display: flex; flex-direction: column; gap: 4px; align-items: center; }
-    .heat-cell { width: 22px; height: 22px; border-radius: 5px; background: #ddd; transition: 0.2s; }
-    .h-label { font-size: 10px; color: #888; margin-bottom: 2px; font-weight: bold; }
+/* ===== POPUP (TENGAH) ===== */
+.popup{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.4);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+}
+.popup-box{
+  background:#fff;
+  padding:16px;
+  border-radius:16px;
+  width:85%;
+  max-width:320px;
+}
+.popup-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.popup button{border:none;padding:10px;border-radius:10px}
+.cancel{margin-top:10px;width:100%}
 
-    /* Overlay Popup */
-    .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(2px); }
-    .overlay.show { display: flex; }
-    .popup { background: #fff; width: 85%; max-width: 380px; border-radius: 25px; padding: 25px; text-align: center; }
-    .popup-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
-    .btn-opt { border: 0; padding: 15px; border-radius: 15px; color: #fff; font-weight: 800; cursor: pointer; font-size: 16px; }
-
-    .status-msg { font-size: 12px; color: #444; margin-top: 10px; font-style: italic; }
-    .debug-box { background: #000; color: #0f0; font-family: monospace; font-size: 11px; padding: 12px; border-radius: 15px; margin-top: 10px; max-height: 100px; overflow-y: auto; text-align: left; }
-  </style>
+/* ===== DEBUG ===== */
+.debug-card{
+  background:#000;
+  color:#0f0;
+  background:#000;color:#0f0;
+  font-family:monospace;
+  font-size:12px;
+  padding:10px;
+  border-radius:12px;
+  max-height:140px;
+  overflow:auto;
+  padding:10px;border-radius:12px;
+  max-height:140px;overflow:auto;
+}
+</style>
 </head>
-<body>
-
-<div class="wrap">
-  <h1 style="text-align:center; font-weight: 900; margin-bottom: 5px;">Solat Tracker</h1>
-  <p id="fullDateDisplay" style="text-align:center; color: var(--muted); margin-top: 0; font-weight: 600;">-</p>
-
-  <div class="card" style="padding: 5px 10px;">
-    <div class="date-scroll-wrapper" id="dateBar"></div>
-  </div>
-
-  <div class="card">
-    <div id="prayerList">Memuatkan data solat...</div>
-  </div>
-
-  <div class="card">
-    <h3 style="margin-top:0;">Heatmap 30 Hari</h3>
-    <div class="heat-scroll">
-      <div class="heat-grid" id="heatmapGrid"></div>
-    </div>
-    <div id="consoleLog" class="debug-box">System Initialized...</div>
-  </div>
+@@ -107,7 +125,7 @@
 </div>
 
-<div class="overlay" id="statusModal">
-  <div class="popup">
-    <h3 id="modalPrayerTitle" style="margin:0; text-transform: uppercase; letter-spacing: 1px;">PILIH STATUS</h3>
+<!-- POPUP -->
+<div id="popup" class="popup" style="display:none">
+<div id="popup" class="popup">
+  <div class="popup-box">
+    <h3 id="popupTitle"></h3>
     <div class="popup-grid">
-      <button class="btn-opt" style="background:var(--tak)" onclick="sendUpdate(0)">Tak Solat</button>
-      <button class="btn-opt" style="background:var(--lewat); color:#000" onclick="sendUpdate(1)">Lewat</button>
-      <button class="btn-opt" style="background:var(--awal)" onclick="sendUpdate(2)">Awal</button>
-      <button class="btn-opt" style="background:var(--gold); color:#000" onclick="sendUpdate(3)">Jemaah</button>
-    </div>
-    <button style="margin-top:20px; background:none; border:0; color:#888; font-weight: bold; cursor:pointer;" onclick="closeModal()">BATAL</button>
-  </div>
-</div>
+@@ -122,48 +140,45 @@
 
 <script>
-  // GUNAKAN URL WEB APP ANDA YANG TERBARU DARI GAMBAR TERSEBUT
-  const API_URL = "https://script.google.com/macros/s/AKfycbzWQ3AFmVBDoTod5xg-qTE2aBhHm31nXF-NIC1WK1f-kacoH71OKesRwEjRBWkgJJhW/exec";
-  
-  const PRAYERS = ["subuh", "zohor", "asar", "maghrib", "isyak"];
-  const STATUS_TEXT = ["Tak", "Lewat", "Awal", "Jemaah", "Belum"];
-  
-  let currentSelectedDate = new Date().toISOString().split('T')[0];
-  let activePrayerKey = "";
+/* ===== CONFIG ===== */
+const API = "https://script.google.com/macros/s/AKfycbwHxXrDrvBx27NbzEeevxIkKYTVVrdEsxV83xxpO9lKHltN3SmvCiiAR3daFTmiJt2k/exec";
+const SOLAT = ["subuh","zohor","asar","maghrib","isyak"];
+const MAP = ["red","yellow","green","gold","grey"];
+const LABEL = ["Tak","Lewat","Awal","Jemaah","Belum"];
+const API="https://script.google.com/macros/s/AKfycbwRxMoxud-Rsn__BoiKQyOtPc9M0n-Q-gCUmDFVkUhUmSXdCyagCb5JruxUEDzA8ulq/exec";
+const SOLAT=["subuh","zohor","asar","maghrib","isyak"];
+const MAP=["red","yellow","green","gold","grey"];
+const LABEL=["Tak","Lewat","Awal","Jemaah","Belum"];
 
-  function writeLog(msg) { 
-    const box = document.getElementById("consoleLog");
-    box.innerHTML = `<div>[${new Date().toLocaleTimeString()}] ${msg}</div>` + box.innerHTML;
+/* ===== STATE ===== */
+let currentDate = new Date();
+let selectedSolat = null;
+let cache = {};   // LOCAL source of truth
+let currentDate=new Date();
+let selectedSolat=null;
+let cache={};
+
+/* ===== DEBUG ===== */
+function log(msg){
+  const el = document.getElementById("debug");
+  if(!el) return;
+  el.innerHTML += `[${new Date().toLocaleTimeString()}] ${msg}<br>`;
+  el.scrollTop = el.scrollHeight;
+  const el=document.getElementById("debug");
+  el.innerHTML+=`[${new Date().toLocaleTimeString()}] ${msg}<br>`;
+  el.scrollTop=el.scrollHeight;
+}
+
+/* ===== INIT ===== */
+init();
+
+async function init(){
+  log("Init start");
+  log("Init");
+  renderHeader();
+  renderCalendar();
+  await loadDetail();
+  await loadHeatmap();
+  log("Init done");
+}
+
+/* ===== HEADER ===== */
+function renderHeader(){
+  todayLabel.textContent = currentDate.toLocaleDateString("ms",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+  monthLabel.textContent = currentDate.toLocaleDateString("ms",{month:"long",year:"numeric"});
+  dateLabel.textContent = "Tarikh: " + fmt(currentDate);
+  todayLabel.textContent=currentDate.toLocaleDateString("ms",{weekday:"long",day:"numeric",month:"long",year:"numeric"});
+  monthLabel.textContent=currentDate.toLocaleDateString("ms",{month:"long",year:"numeric"});
+  dateLabel.textContent="Tarikh: "+fmt(currentDate);
+}
+
+/* ===== CALENDAR ===== */
+function renderCalendar(){
+  dayRow.innerHTML="";
+  for(let i=-2;i<=2;i++){
+    let d=new Date(currentDate); d.setDate(d.getDate()+i);
+    let d=new Date(currentDate);d.setDate(d.getDate()+i);
+    let el=document.createElement("div");
+    el.className="day-box"+(i===0?" active":"");
+    el.innerHTML=`${d.toLocaleDateString("ms",{weekday:"short"})}<br><b>${d.getDate()}</b>`;
+@@ -182,77 +197,68 @@
+
+async function loadDetail(){
+  const k=fmt(currentDate);
+  if(cache[k]){
+    log("Detail cache hit "+k);
+    applyDetail(cache[k]);
+    return;
   }
+  if(cache[k]){applyDetail(cache[k]);return}
+  log("Fetch detail "+k);
+  const r=await fetch(API+"?mode=detail&date="+k,{cache:"no-store"});
+  const d=await r.json();
+  cache[k]=d;
+  applyDetail(d);
+}
 
-  // 1. Bina Bar Tarikh (Tatalan Sisi)
-  function setupDateBar() {
-    const bar = document.getElementById("dateBar");
-    bar.innerHTML = "";
-    const today = new Date();
-    
-    // Tunjuk 20 hari ke belakang dan hari ini
-    for(let i=20; i>=0; i--) {
-      let d = new Date();
-      d.setDate(today.getDate() - i);
-      let iso = d.toISOString().split('T')[0];
-      
-      let chip = document.createElement("div");
-      chip.className = `date-chip ${iso === currentSelectedDate ? 'active' : ''}`;
-      chip.innerHTML = `<span>${d.toLocaleDateString('ms-MY', {weekday:'short'})}</span><b>${d.getDate()}</b>`;
-      chip.onclick = () => {
-        currentSelectedDate = iso;
-        document.querySelectorAll('.date-chip').forEach(el => el.classList.remove('active'));
-        chip.classList.add('active');
-        refreshUI();
-      };
-      bar.appendChild(chip);
-    }
-    bar.scrollLeft = bar.scrollWidth; // Fokus hari ini (paling kanan)
-  }
+function applyDetail(d){
+  SOLAT.forEach(s=>updatePill(s,d[s] ?? 4));
+}
 
-  // 2. Ambil Data Solat (Fetch)
-  async function fetchPrayerData() {
-    const display = document.getElementById("fullDateDisplay");
-    const list = document.getElementById("prayerList");
-    
-    let dObj = new Date(currentSelectedDate);
-    display.innerText = dObj.toLocaleDateString('ms-MY', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
-    list.innerHTML = "<div style='text-align:center; padding:20px;'>Menghubungi server...</div>";
-    
-    try {
-      // Menggunakan fetch dengan mode cors untuk kestabilan
-      const response = await fetch(`${API_URL}?mode=detail&date=${currentSelectedDate}`);
-      if (!response.ok) throw new Error("Server response not OK");
-      const data = await response.json();
-      
-      let html = "";
-      PRAYERS.forEach(p => {
-        let val = data[p] !== undefined ? data[p] : 4;
-        html += `
-          <div class="row">
-            <b>${p}</b>
-            <div class="pill p-${val}" onclick="openModal('${p}')">${STATUS_TEXT[val]}</div>
-          </div>`;
-      });
-      list.innerHTML = html;
-    } catch (e) {
-      writeLog("Error: " + e.message);
-      list.innerHTML = "<div style='color:red; text-align:center; padding:20px;'>Gagal memuatkan data. Sila pastikan Web App diset kepada 'Anyone'.</div>";
-    }
-  }
+/* ===== HEATMAP ===== */
+async function loadHeatmap(){
+  log("Load heatmap");
+  const r = await fetch(API+"?mode=heatmap",{cache:"no-store"});
+  const json = await r.json();
+  const days = Array.isArray(json.days) ? json.days : [];
 
-  // 3. Heatmap 30 Hari
-  async function fetchHeatmap() {
-    try {
-      const response = await fetch(`${API_URL}?mode=heatmap`);
-      const data = await response.json();
-      const grid = document.getElementById("heatmapGrid");
-      grid.innerHTML = "";
+  heatmap.innerHTML = "";
+  const r=await fetch(API+"?mode=heatmap",{cache:"no-store"});
+  const j=await r.json();
+  const days=Array.isArray(j.days)?j.days:[];
+  heatmap.innerHTML="";
 
-      if (data.days) {
-        data.days.forEach(day => {
-          let col = document.createElement("div");
-          col.className = "heat-col";
-          col.innerHTML = `<span class="h-label">${day.date.split('-')[2]}</span>`;
-          
-          PRAYERS.forEach(p => {
-            let cell = document.createElement("div");
-            cell.className = `heat-cell p-${day[p]}`;
-            cell.title = `${day.date}: ${p}`;
-            col.appendChild(cell);
-          });
-          grid.appendChild(col);
-        });
-      }
-    } catch (e) { writeLog("Heatmap Error"); }
-  }
+  days.forEach(d=>{
+    const col = document.createElement("div");
+    col.className = "hm-col";
+    col.onclick = ()=>{ currentDate = new Date(d.date); init(); };
+    const col=document.createElement("div");
+    col.className="hm-col";
+    col.onclick=()=>{currentDate=new Date(d.date);init()};
 
-  // 4. Fungsi Kemaskini (Update)
-  function openModal(key) { activePrayerKey = key; document.getElementById("modalPrayerTitle").innerText = key; document.getElementById("statusModal").classList.add("show"); }
-  function closeModal() { document.getElementById("statusModal").classList.remove("show"); }
+    col.innerHTML = `
+    col.innerHTML=`
+      <div class="hm-date1">${new Date(d.date).toLocaleDateString("ms",{month:"short"})}</div>
+      <div class="hm-date2">${new Date(d.date).getDate()}</div>
+    `;
 
-  async function sendUpdate(val) {
-    closeModal();
-    writeLog(`Mengemas kini ${activePrayerKey}...`);
-    
-    try {
-      // POST ke Google Apps Script memerlukan JSON string
-      const response = await fetch(API_URL, {
-        method: "POST",
-        body: JSON.stringify({ 
-          date: currentSelectedDate, 
-          solat: activePrayerKey, 
-          value: val 
-        })
-      });
-      
-      writeLog("Berjaya disimpan!");
-      refreshUI();
-    } catch (e) { 
-      writeLog("Ralat Simpan: Cuba Refresh Browser"); 
-    }
-  }
+    SOLAT.forEach(s=>{
+      const v = d[s] ?? 4;
+      const cell = document.createElement("div");
+      cell.className = "hm-cell "+MAP[v];
+      col.appendChild(cell);
+      const v=(d[s]!==undefined)?d[s]:4;
+      const c=document.createElement("div");
+      c.className="hm-cell "+MAP[v];
+      col.appendChild(c);
+    });
 
-  function refreshUI() {
-    fetchPrayerData();
-    fetchHeatmap();
-  }
+    heatmap.appendChild(col);
+  });
 
-  window.onload = () => {
-    setupDateBar();
-    refreshUI();
-  };
+  log("Heatmap rendered: "+days.length+" days");
+  log("Heatmap rendered "+days.length+" days");
+}
+
+/* ===== POPUP ===== */
+function openPopup(s){ selectedSolat=s; popupTitle.textContent=s.toUpperCase(); popup.style.display="flex"; }
+function closePopup(){ popup.style.display="none"; }
+function openPopup(s){selectedSolat=s;popupTitle.textContent=s.toUpperCase();popup.style.display="flex"}
+function closePopup(){popup.style.display="none"}
+
+function submitSolat(v){
+  const k=fmt(currentDate);
+
+  // UPDATE LOCAL ONLY (NO REFETCH)
+  cache[k] ??= {date:k};
+  cache[k][selectedSolat] = v;
+  cache[k]??={date:k};
+  cache[k][selectedSolat]=v;
+  applyDetail(cache[k]);
+  closePopup();
+  log("Local update "+selectedSolat+"="+v);
+
+  // POST background
+  fetch(API,{
+    method:"POST",
+    headers:{"Content-Type":"text/plain"},
+    body:JSON.stringify({date:k,solat:selectedSolat,value:v})
+  });
+}
+
+function fmt(d){ return d.toISOString().slice(0,10); }
+function fmt(d){return d.toISOString().slice(0,10)}
 </script>
 
 </body>
-</html>
