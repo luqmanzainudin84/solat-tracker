@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Solat Tracker Pro - Full Fix</title>
+  <title>Solat Tracker Pro - Instant Update</title>
   <style>
     :root { 
       --bg: #f8f9fa; --card: #ffffff; 
@@ -14,43 +14,31 @@
     .container { max-width: 430px; margin: auto; padding: 16px; }
     h1 { text-align: center; margin: 10px 0 0 0; font-size: 22px; }
     .subdate { text-align: center; color: #666; margin-bottom: 20px; font-size: 14px; min-height: 20px; }
-    
     .card { background: var(--card); border-radius: 18px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
     
-    /* BOX TARIKH ATAS */
-    .date-scroll { 
-      display: flex; 
-      overflow-x: auto; 
-      gap: 10px; 
-      padding: 10px 0; 
-      scrollbar-width: none; 
-      -webkit-overflow-scrolling: touch;
-      cursor: grab;
-    }
+    /* DATE BAR */
+    .date-scroll { display: flex; overflow-x: auto; gap: 10px; padding: 10px 0; scrollbar-width: none; -webkit-overflow-scrolling: touch; cursor: grab; }
     .date-scroll::-webkit-scrollbar { display: none; }
     .day-box { min-width: 60px; padding: 12px 5px; background: #eee; border-radius: 14px; text-align: center; cursor: pointer; flex-shrink: 0; transition: 0.2s; }
     .day-box.active { background: #000; color: #fff; transform: scale(1.05); }
 
-    /* Prayer List */
+    /* LIST */
     .row { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid #f0f0f0; }
     .row:last-child { border-bottom: none; }
-    .pill { padding: 10px 18px; border-radius: 25px; color: #fff; font-weight: bold; cursor: pointer; min-width: 85px; text-align: center; font-size: 13px; border: none; }
+    .pill { padding: 10px 18px; border-radius: 25px; color: #fff; font-weight: bold; cursor: pointer; min-width: 85px; text-align: center; font-size: 13px; border: none; transition: 0.2s; }
     
-    .p-0 { background: var(--red); } 
-    .p-1 { background: var(--yellow); color: #000; } 
-    .p-2 { background: var(--green); } 
-    .p-3 { background: var(--green); border-bottom: 4px solid var(--gold); } 
+    /* COLORS */
+    .p-0 { background: var(--red); } .p-1 { background: var(--yellow); color: #000; } 
+    .p-2 { background: var(--green); } .p-3 { background: var(--green); border-bottom: 4px solid var(--gold); } 
     .p-4 { background: var(--grey); } 
 
     /* HEATMAP */
     .hm-wrap { display: flex; overflow-x: auto; gap: 8px; padding: 10px 5px; -webkit-overflow-scrolling: touch; }
     .hm-col { display: flex; flex-direction: column; gap: 4px; align-items: center; flex-shrink: 0; }
-    .hm-cell { width: 18px; height: 18px; border-radius: 4px; cursor: pointer; border: 1px solid transparent; }
-    .hm-cell:hover { border: 1px solid #000; }
+    .hm-cell { width: 18px; height: 18px; border-radius: 4px; cursor: pointer; border: 1px solid transparent; transition: background 0.2s; }
 
-    .debug { background: #1a1a1a; color: #00ff00; font-family: monospace; font-size: 11px; padding: 12px; border-radius: 12px; height: 80px; overflow-y: auto; margin-top: 10px; }
+    .debug { background: #1a1a1a; color: #00ff00; font-family: monospace; font-size: 11px; padding: 12px; border-radius: 12px; height: 70px; overflow-y: auto; margin-top: 10px; }
     
-    /* Modal */
     .popup { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 1000; }
     .popup.show { display: flex; }
     .popup-box { background: #fff; padding: 25px; border-radius: 24px; width: 85%; max-width: 320px; text-align: center; }
@@ -62,20 +50,15 @@
 
 <div class="container">
   <h1>Solat Tracker Pro</h1>
-  <div class="subdate" id="fullDateText">Memuatkan tarikh...</div>
+  <div class="subdate" id="fullDateText">Sila tunggu...</div>
+
+  <div class="card"><div class="date-scroll" id="dateBar"></div></div>
+  <div class="card" id="prayerList"></div>
 
   <div class="card">
-    <div class="date-scroll" id="dateBar"></div>
-  </div>
-
-  <div class="card" id="prayerList">
-    <div style="text-align:center; padding: 20px;">Sila tunggu...</div>
-  </div>
-
-  <div class="card">
-    <h4 style="margin:0 0 10px 0">Heatmap (Tatal & Klik Kotak)</h4>
+    <h4 style="margin:0 0 10px 0">Heatmap (Instant Update)</h4>
     <div class="hm-wrap" id="heatmapGrid"></div>
-    <div id="log" class="debug">System Ready...</div>
+    <div id="log" class="debug">System ready...</div>
   </div>
 </div>
 
@@ -102,6 +85,7 @@
   let selectedDate = new Date().toLocaleDateString('sv'); 
   let currentSolatKey = "";
   let updateDate = "";
+  let cachedData = {}; // Simpan data dalam memori untuk update laju
 
   function log(msg) { 
     const el = document.getElementById("log");
@@ -109,102 +93,83 @@
     el.scrollTop = el.scrollHeight;
   }
 
-  // Fungsi untuk tukar format tarikh di bawah tajuk
   function updateFullDateDisplay(isoDate) {
     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    const dateObj = new Date(isoDate);
-    document.getElementById("fullDateText").innerText = dateObj.toLocaleDateString('ms-MY', options);
+    document.getElementById("fullDateText").innerText = new Date(isoDate).toLocaleDateString('ms-MY', options);
   }
 
   function initDateBar() {
     const bar = document.getElementById("dateBar");
     bar.innerHTML = "";
-    
-    // Day Boxes
     for(let i=14; i>=0; i--) {
       let d = new Date(); d.setDate(d.getDate() - i);
       let iso = d.toLocaleDateString('sv'); 
       let chip = document.createElement("div");
       chip.className = `day-box ${iso === selectedDate ? 'active' : ''}`;
       chip.innerHTML = `<span style="font-size:10px">${d.toLocaleDateString('ms',{weekday:'short'})}</span><br><b>${d.getDate()}</b>`;
-      
       chip.onclick = () => { 
         selectedDate = iso; 
         document.querySelectorAll('.day-box').forEach(c => c.classList.remove('active'));
         chip.classList.add('active'); 
-        updateFullDateDisplay(iso); // Kemaskini teks tarikh panjang
-        loadDetail(); 
+        updateFullDateDisplay(iso);
+        renderPrayers(); 
       };
       bar.appendChild(chip);
     }
-    
-    // Logik Scroll Guna Mouse Wheel
-    bar.addEventListener('wheel', (e) => {
-      e.preventDefault();
-      bar.scrollLeft += e.deltaY;
-    });
-
+    bar.addEventListener('wheel', (e) => { e.preventDefault(); bar.scrollLeft += e.deltaY; });
     bar.scrollLeft = bar.scrollWidth;
     updateFullDateDisplay(selectedDate);
   }
 
-  async function loadDetail() {
+  // AMBIL SEMUA DATA SEKALIGUS (HEATMAP + DETAIL)
+  async function fetchAllData() {
     try {
-      const res = await fetch(`${API}?mode=detail&date=${selectedDate}`);
+      const res = await fetch(`${API}?mode=heatmap`);
       const data = await res.json();
-      renderPrayers(data);
-    } catch (e) { renderPrayers({}); }
+      if(data.days) {
+        data.days.forEach(d => { cachedData[d.date] = d; });
+        renderPrayers();
+        renderHeatmap();
+      }
+    } catch (e) { log("Gagal memuatkan data."); }
   }
 
-  function renderPrayers(data) {
+  function renderPrayers() {
     const list = document.getElementById("prayerList");
+    const dayData = cachedData[selectedDate] || {};
     list.innerHTML = "";
     SOLAT.forEach(s => {
-      let val = (data && data[s] !== undefined) ? data[s] : 4;
+      let val = dayData[s] !== undefined ? dayData[s] : 4;
       list.innerHTML += `
         <div class="row">
           <b style="text-transform:capitalize">${s}</b>
-          <div class="pill ${MAP_CSS[val]}" onclick="openModal('${s}', '${selectedDate}')">${LABELS[val]}</div>
+          <div id="pill-${s}" class="pill ${MAP_CSS[val]}" onclick="openModal('${s}', '${selectedDate}')">${LABELS[val]}</div>
         </div>`;
     });
   }
 
-  async function loadHeatmap() {
-    try {
-      const res = await fetch(`${API}?mode=heatmap`);
-      const data = await res.json();
-      const grid = document.getElementById("heatmapGrid");
-      grid.innerHTML = "";
-      
-      const dataMap = {};
-      if(data.days) data.days.forEach(d => { dataMap[d.date] = d; });
-
-      for(let i=29; i>=0; i--) {
-        let d = new Date(); d.setDate(d.getDate() - i);
-        let iso = d.toLocaleDateString('sv');
-        let dayData = dataMap[iso] || {};
-        let col = document.createElement("div");
-        col.className = "hm-col";
-        col.innerHTML = `<span style="font-size:8px; color:#999">${d.getDate()}</span>`;
-        
-        SOLAT.forEach(s => {
-          let val = dayData[s] !== undefined ? dayData[s] : 4;
-          let cell = document.createElement("div");
-          cell.className = `hm-cell ${MAP_CSS[val]}`;
-          cell.onclick = () => openModal(s, iso);
-          col.appendChild(cell);
-        });
-        grid.appendChild(col);
-      }
-      
-      // Heatmap Mouse Wheel Scroll
-      grid.addEventListener('wheel', (e) => {
-        e.preventDefault();
-        grid.scrollLeft += e.deltaY;
+  function renderHeatmap() {
+    const grid = document.getElementById("heatmapGrid");
+    grid.innerHTML = "";
+    for(let i=29; i>=0; i--) {
+      let d = new Date(); d.setDate(d.getDate() - i);
+      let iso = d.toLocaleDateString('sv');
+      let dayData = cachedData[iso] || {};
+      let col = document.createElement("div");
+      col.className = "hm-col";
+      col.innerHTML = `<span style="font-size:8px; color:#999">${d.getDate()}</span>`;
+      SOLAT.forEach(s => {
+        let val = dayData[s] !== undefined ? dayData[s] : 4;
+        let cell = document.createElement("div");
+        cell.id = `hm-${iso}-${s}`;
+        cell.className = `hm-cell ${MAP_CSS[val]}`;
+        cell.onclick = () => openModal(s, iso);
+        col.appendChild(cell);
       });
-      
-      grid.scrollLeft = grid.scrollWidth;
-    } catch (e) { log("Error heatmap."); }
+      grid.appendChild(col);
+    }
+    grid.addEventListener('wheel', (e) => { e.preventDefault(); grid.scrollLeft += e.deltaY; });
+    grid.scrollLeft = grid.scrollWidth;
   }
 
   function openModal(s, date) { 
@@ -217,27 +182,37 @@
   
   function closeModal() { document.getElementById("modal").classList.remove("show"); }
 
+  // FUNGSI UPDATE LAJU (OPTIMISTIC)
   async function submit(val) {
     closeModal();
-    log(`Updating ${currentSolatKey}...`);
+    log(`Update: ${currentSolatKey}...`);
+
+    // 1. Update Skrin Serta-merta (Optimistic)
+    if (!cachedData[updateDate]) cachedData[updateDate] = { date: updateDate };
+    cachedData[updateDate][currentSolatKey] = val;
+
+    if (updateDate === selectedDate) renderPrayers();
+    const targetCell = document.getElementById(`hm-${updateDate}-${currentSolatKey}`);
+    if (targetCell) {
+        targetCell.className = `hm-cell ${MAP_CSS[val]}`;
+    }
+
+    // 2. Hantar ke Server di belakang tab
     try {
-      await fetch(API, {
+      fetch(API, {
         method: "POST",
         mode: "no-cors",
         body: JSON.stringify({ date: updateDate, solat: currentSolatKey, value: val })
       });
-      log("Data dihantar. Refreshing...");
-      setTimeout(() => { 
-        if(updateDate === selectedDate) loadDetail(); 
-        loadHeatmap(); 
-      }, 2000);
-    } catch (e) { log("Update gagal."); }
+      log("Berjaya dihantar!");
+    } catch (e) { 
+      log("Ralat penghantaran!"); 
+    }
   }
 
   window.onload = () => {
     initDateBar();
-    loadDetail();
-    loadHeatmap();
+    fetchAllData();
   };
 </script>
 </body>
