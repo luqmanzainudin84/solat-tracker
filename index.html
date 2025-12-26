@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Solat Tracker Pro - Fixed Date Scroll</title>
+  <title>Solat Tracker Pro - Heatmap Update</title>
   <style>
     :root { 
       --bg: #f8f9fa; --card: #ffffff; 
@@ -17,26 +17,10 @@
     
     .card { background: var(--card); border-radius: 18px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
     
-    /* BOX TARIKH ATAS (Scrollable) */
-    .date-scroll { 
-      display: flex; 
-      overflow-x: auto; 
-      gap: 10px; 
-      padding: 5px 0; 
-      scrollbar-width: none; 
-      -webkit-overflow-scrolling: touch; 
-    }
+    /* BOX TARIKH ATAS */
+    .date-scroll { display: flex; overflow-x: auto; gap: 10px; padding: 5px 0; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
     .date-scroll::-webkit-scrollbar { display: none; }
-    .day-box { 
-      min-width: 55px; 
-      padding: 10px; 
-      background: #eee; 
-      border-radius: 14px; 
-      text-align: center; 
-      cursor: pointer; 
-      flex-shrink: 0; 
-      transition: 0.2s;
-    }
+    .day-box { min-width: 55px; padding: 10px; background: #eee; border-radius: 14px; text-align: center; cursor: pointer; flex-shrink: 0; }
     .day-box.active { background: #000; color: #fff; }
 
     /* Prayer List */
@@ -44,23 +28,17 @@
     .row:last-child { border-bottom: none; }
     .pill { padding: 10px 18px; border-radius: 25px; color: #fff; font-weight: bold; cursor: pointer; min-width: 85px; text-align: center; font-size: 13px; }
     
-    /* Warna Status */
     .p-0 { background: var(--red); } 
     .p-1 { background: var(--yellow); color: #000; } 
     .p-2 { background: var(--green); } 
     .p-3 { background: var(--green); border-bottom: 4px solid var(--gold); } 
     .p-4 { background: var(--grey); } 
 
-    /* Heatmap (Scrollable) */
-    .hm-wrap { 
-      display: flex; 
-      overflow-x: auto; 
-      gap: 6px; 
-      padding: 10px 5px; 
-      -webkit-overflow-scrolling: touch; 
-    }
+    /* HEATMAP ADJUSTMENT */
+    .hm-wrap { display: flex; overflow-x: auto; gap: 8px; padding: 10px 5px; -webkit-overflow-scrolling: touch; }
     .hm-col { display: flex; flex-direction: column; gap: 4px; align-items: center; flex-shrink: 0; }
-    .hm-cell { width: 16px; height: 16px; border-radius: 4px; }
+    .hm-cell { width: 18px; height: 18px; border-radius: 4px; cursor: pointer; border: 1px solid transparent; }
+    .hm-cell:hover { border: 1px solid #000; }
 
     .debug { background: #1a1a1a; color: #00ff00; font-family: monospace; font-size: 11px; padding: 12px; border-radius: 12px; height: 90px; overflow-y: auto; margin-top: 10px; }
     
@@ -75,7 +53,7 @@
 <body>
 
 <div class="container">
-  <h1 id="monthText">Solat Tracker</h1>
+  <h1 id="monthText">Solat Tracker Pro</h1>
   <div class="subdate" id="fullDateText">-</div>
 
   <div class="card">
@@ -87,7 +65,7 @@
   </div>
 
   <div class="card">
-    <h4 style="margin:0 0 10px 0">Heatmap 30 Hari (Sila Tatal)</h4>
+    <h4 style="margin:0 0 10px 0">Heatmap (Tekan kotak untuk update)</h4>
     <div class="hm-wrap" id="heatmapGrid"></div>
     <div id="log" class="debug">System Ready...</div>
   </div>
@@ -95,7 +73,8 @@
 
 <div class="popup" id="modal">
   <div class="popup-box">
-    <h3 id="modalTitle" style="margin:0; text-transform: uppercase;">STATUS SOLAT</h3>
+    <h3 id="modalTitle" style="margin:0; text-transform: uppercase;">STATUS</h3>
+    <p id="modalSub" style="font-size:12px; color:#666; margin:5px 0 0 0"></p>
     <div class="grid">
       <button style="background:var(--red)" onclick="submit(0)">Tak</button>
       <button style="background:var(--yellow); color:#000" onclick="submit(1)">Lewat</button>
@@ -107,15 +86,14 @@
 </div>
 
 <script>
-  // URL API ANDA YANG TERKINI
   const API = "https://script.google.com/macros/s/AKfycbzrOi21t_Pdam9_rIKFo4dz2FL6lIc0WJeymSE6SeqMgh0OfvDYySAXkbJIkYKIBj_9/exec";
-  
   const SOLAT = ["subuh", "zohor", "asar", "maghrib", "isyak"];
   const LABELS = ["Tak", "Lewat", "Awal", "Jemaah", "Belum"];
   const MAP_CSS = ["p-0", "p-1", "p-2", "p-3", "p-4"];
   
   let selectedDate = new Date().toLocaleDateString('sv'); 
   let currentSolatKey = "";
+  let updateDate = ""; // Tarikh khusus untuk kemaskini dari heatmap
 
   function log(msg) { 
     const el = document.getElementById("log");
@@ -123,7 +101,6 @@
     el.scrollTop = el.scrollHeight;
   }
 
-  // Bina Bar Tarikh Atas
   function initDateBar() {
     const bar = document.getElementById("dateBar");
     bar.innerHTML = "";
@@ -149,11 +126,7 @@
       const res = await fetch(`${API}?mode=detail&date=${selectedDate}`);
       const data = await res.json();
       renderPrayers(data);
-      log("Data loaded: " + selectedDate);
-    } catch (e) { 
-      log("Error memuatkan detail."); 
-      renderPrayers({}); 
-    }
+    } catch (e) { renderPrayers({}); }
   }
 
   function renderPrayers(data) {
@@ -164,7 +137,7 @@
       list.innerHTML += `
         <div class="row">
           <b style="text-transform:capitalize">${s}</b>
-          <div class="pill ${MAP_CSS[val]}" onclick="openModal('${s}')">${LABELS[val]}</div>
+          <div class="pill ${MAP_CSS[val]}" onclick="openModal('${s}', '${selectedDate}')">${LABELS[val]}</div>
         </div>`;
     });
   }
@@ -175,26 +148,39 @@
       const data = await res.json();
       const grid = document.getElementById("heatmapGrid");
       grid.innerHTML = "";
-      if(data.days) {
-        data.days.forEach(d => {
-          let col = document.createElement("div");
-          col.className = "hm-col";
-          col.innerHTML = `<span style="font-size:8px; color:#999">${d.date.split('-')[2]}</span>`;
-          SOLAT.forEach(s => {
-            let cell = document.createElement("div");
-            cell.className = `hm-cell ${MAP_CSS[d[s] ?? 4]}`;
-            col.appendChild(cell);
-          });
-          grid.appendChild(col);
+
+      // Bina Map untuk carian pantas data sedia ada
+      const dataMap = {};
+      if(data.days) data.days.forEach(d => { dataMap[d.date] = d; });
+
+      // Jana 30 hari secara turutan (paling lama ke paling baru)
+      for(let i=29; i>=0; i--) {
+        let d = new Date(); d.setDate(d.getDate() - i);
+        let iso = d.toLocaleDateString('sv');
+        let dayData = dataMap[iso] || {};
+
+        let col = document.createElement("div");
+        col.className = "hm-col";
+        col.innerHTML = `<span style="font-size:8px; color:#999">${d.getDate()}</span>`;
+        
+        SOLAT.forEach(s => {
+          let val = dayData[s] !== undefined ? dayData[s] : 4;
+          let cell = document.createElement("div");
+          cell.className = `hm-cell ${MAP_CSS[val]}`;
+          cell.onclick = () => openModal(s, iso); // Klik kotak heatmap untuk update
+          col.appendChild(cell);
         });
-        grid.scrollLeft = grid.scrollWidth;
+        grid.appendChild(col);
       }
+      grid.scrollLeft = grid.scrollWidth;
     } catch (e) { log("Error heatmap."); }
   }
 
-  function openModal(s) { 
+  function openModal(s, date) { 
     currentSolatKey = s; 
+    updateDate = date;
     document.getElementById("modalTitle").innerText = s; 
+    document.getElementById("modalSub").innerText = "Tarikh: " + date;
     document.getElementById("modal").classList.add("show"); 
   }
   
@@ -202,15 +188,18 @@
 
   async function submit(val) {
     closeModal();
-    log(`Updating ${currentSolatKey}...`);
+    log(`Updating ${currentSolatKey} (${updateDate})...`);
     try {
       await fetch(API, {
         method: "POST",
         mode: "no-cors",
-        body: JSON.stringify({ date: selectedDate, solat: currentSolatKey, value: val })
+        body: JSON.stringify({ date: updateDate, solat: currentSolatKey, value: val })
       });
-      log("Success! Tunggu server...");
-      setTimeout(() => { loadDetail(); loadHeatmap(); }, 2000);
+      log("Selesai. Memuat semula...");
+      setTimeout(() => { 
+        if(updateDate === selectedDate) loadDetail(); 
+        loadHeatmap(); 
+      }, 2000);
     } catch (e) { log("Error update."); }
   }
 
