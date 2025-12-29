@@ -11,7 +11,23 @@
       --green: #2ecc71; --gold: #f39c12; --grey: #aaa; 
     }
     body { margin:0; background: var(--bg); font-family: system-ui, -apple-system, sans-serif; color: #333; }
-    .container { max-width: 430px; margin: auto; padding: 16px; }
+    .container { max-width: 430px; margin: auto; padding: 16px; position: relative; }
+    
+    /* BUTANG MENU UTAMA */
+    .btn-menu { 
+      position: absolute; 
+      top: 15px; 
+      right: 16px; 
+      background: #000; 
+      color: #fff; 
+      text-decoration: none; 
+      padding: 6px 14px; 
+      border-radius: 20px; 
+      font-size: 12px; 
+      font-weight: bold;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
     h1 { text-align: center; margin: 10px 0 0 0; font-size: 22px; }
     .subdate { text-align: center; color: #666; margin-bottom: 20px; font-size: 14px; min-height: 20px; }
     .card { background: var(--card); border-radius: 18px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
@@ -49,6 +65,8 @@
 <body>
 
 <div class="container">
+  <a href="https://luqmanzainudin84.github.io/LUQMAN/" class="btn-menu">LUQMAN</a>
+
   <h1>Solat Tracker Pro</h1>
   <div class="subdate" id="fullDateText">Sila tunggu...</div>
 
@@ -85,7 +103,7 @@
   let selectedDate = new Date().toLocaleDateString('sv'); 
   let currentSolatKey = "";
   let updateDate = "";
-  let cachedData = {}; // Simpan data dalam memori untuk update laju
+  let cachedData = {}; 
 
   function log(msg) { 
     const el = document.getElementById("log");
@@ -121,7 +139,6 @@
     updateFullDateDisplay(selectedDate);
   }
 
-  // AMBIL SEMUA DATA SEKALIGUS (HEATMAP + DETAIL)
   async function fetchAllData() {
     try {
       const res = await fetch(`${API}?mode=heatmap`);
@@ -182,22 +199,14 @@
   
   function closeModal() { document.getElementById("modal").classList.remove("show"); }
 
-  // FUNGSI UPDATE LAJU (OPTIMISTIC)
   async function submit(val) {
     closeModal();
     log(`Update: ${currentSolatKey}...`);
-
-    // 1. Update Skrin Serta-merta (Optimistic)
     if (!cachedData[updateDate]) cachedData[updateDate] = { date: updateDate };
     cachedData[updateDate][currentSolatKey] = val;
-
     if (updateDate === selectedDate) renderPrayers();
     const targetCell = document.getElementById(`hm-${updateDate}-${currentSolatKey}`);
-    if (targetCell) {
-        targetCell.className = `hm-cell ${MAP_CSS[val]}`;
-    }
-
-    // 2. Hantar ke Server di belakang tab
+    if (targetCell) targetCell.className = `hm-cell ${MAP_CSS[val]}`;
     try {
       fetch(API, {
         method: "POST",
@@ -205,9 +214,7 @@
         body: JSON.stringify({ date: updateDate, solat: currentSolatKey, value: val })
       });
       log("Berjaya dihantar!");
-    } catch (e) { 
-      log("Ralat penghantaran!"); 
-    }
+    } catch (e) { log("Ralat penghantaran!"); }
   }
 
   window.onload = () => {
