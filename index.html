@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Solat Tracker Pro - Instant Update</title>
+  <title>Solat Tracker Pro - Official</title>
   <style>
     :root { 
       --bg: #f8f9fa; --card: #ffffff; 
@@ -11,9 +11,13 @@
       --green: #2ecc71; --gold: #f39c12; --grey: #aaa; 
     }
     body { margin:0; background: var(--bg); font-family: system-ui, -apple-system, sans-serif; color: #333; }
-    .container { max-width: 430px; margin: auto; padding: 16px; position: relative; }
     
-    /* BUTANG MENU UTAMA */
+    /* CONTAINER & HEADER */
+    .container { max-width: 430px; margin: auto; padding: 16px; position: relative; }
+    h1 { text-align: center; margin: 10px 0 0 0; font-size: 22px; }
+    .subdate { text-align: center; color: #666; margin-bottom: 20px; font-size: 14px; min-height: 20px; }
+
+    /* BUTANG HOME (KANAN ATAS) */
     .btn-menu { 
       position: absolute; 
       top: 15px; 
@@ -21,45 +25,78 @@
       background: #000; 
       color: #fff; 
       text-decoration: none; 
-      padding: 6px 14px; 
-      border-radius: 20px; 
-      font-size: 12px; 
+      padding: 8px 16px; 
+      border-radius: 12px; 
+      font-size: 13px; 
       font-weight: bold;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      z-index: 100;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     }
 
-    h1 { text-align: center; margin: 10px 0 0 0; font-size: 22px; }
-    .subdate { text-align: center; color: #666; margin-bottom: 20px; font-size: 14px; min-height: 20px; }
-    .card { background: var(--card); border-radius: 18px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    /* CARD DESIGN */
+    .card { background: var(--card); border-radius: 24px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
     
-    /* DATE BAR */
-    .date-scroll { display: flex; overflow-x: auto; gap: 10px; padding: 10px 0; scrollbar-width: none; -webkit-overflow-scrolling: touch; cursor: grab; }
+    /* DATE SCROLL BAR */
+    .date-scroll { 
+      display: flex; 
+      overflow-x: auto; 
+      gap: 10px; 
+      padding: 10px 0; 
+      scrollbar-width: none; 
+      -webkit-overflow-scrolling: touch; 
+      cursor: grab;
+    }
     .date-scroll::-webkit-scrollbar { display: none; }
-    .day-box { min-width: 60px; padding: 12px 5px; background: #eee; border-radius: 14px; text-align: center; cursor: pointer; flex-shrink: 0; transition: 0.2s; }
-    .day-box.active { background: #000; color: #fff; transform: scale(1.05); }
+    .day-box { 
+      min-width: 65px; 
+      padding: 15px 5px; 
+      background: #f0f0f0; 
+      border-radius: 18px; 
+      text-align: center; 
+      cursor: pointer; 
+      flex-shrink: 0; 
+      transition: 0.2s;
+      color: #666;
+    }
+    .day-box.active { background: #000; color: #fff; transform: scale(1.05); font-weight: bold; }
 
-    /* LIST */
-    .row { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; border-bottom: 1px solid #f0f0f0; }
+    /* PRAYER LIST */
+    .row { display: flex; justify-content: space-between; align-items: center; padding: 14px 5px; border-bottom: 1px solid #f0f0f0; }
     .row:last-child { border-bottom: none; }
-    .pill { padding: 10px 18px; border-radius: 25px; color: #fff; font-weight: bold; cursor: pointer; min-width: 85px; text-align: center; font-size: 13px; border: none; transition: 0.2s; }
+    .pill { 
+      padding: 10px 22px; 
+      border-radius: 25px; 
+      color: #fff; 
+      font-weight: bold; 
+      cursor: pointer; 
+      min-width: 100px; 
+      text-align: center; 
+      font-size: 14px; 
+      border: none; 
+      transition: 0.2s; 
+    }
     
-    /* COLORS */
-    .p-0 { background: var(--red); } .p-1 { background: var(--yellow); color: #000; } 
-    .p-2 { background: var(--green); } .p-3 { background: var(--green); border-bottom: 4px solid var(--gold); } 
+    /* STATUS COLORS */
+    .p-0 { background: var(--red); } 
+    .p-1 { background: var(--yellow); color: #000; } 
+    .p-2 { background: var(--green); } 
+    .p-3 { background: var(--green); border-bottom: 4px solid var(--gold); } 
     .p-4 { background: var(--grey); } 
 
-    /* HEATMAP */
+    /* HEATMAP SECTION */
     .hm-wrap { display: flex; overflow-x: auto; gap: 8px; padding: 10px 5px; -webkit-overflow-scrolling: touch; }
     .hm-col { display: flex; flex-direction: column; gap: 4px; align-items: center; flex-shrink: 0; }
-    .hm-cell { width: 18px; height: 18px; border-radius: 4px; cursor: pointer; border: 1px solid transparent; transition: background 0.2s; }
+    .hm-cell { width: 19px; height: 19px; border-radius: 4px; cursor: pointer; border: 1px solid transparent; transition: background 0.2s; }
+    .hm-cell:hover { border: 1px solid #000; }
 
-    .debug { background: #1a1a1a; color: #00ff00; font-family: monospace; font-size: 11px; padding: 12px; border-radius: 12px; height: 70px; overflow-y: auto; margin-top: 10px; }
+    .debug { background: #1a1a1a; color: #00ff00; font-family: monospace; font-size: 11px; padding: 12px; border-radius: 12px; height: 75px; overflow-y: auto; margin-top: 10px; }
     
+    /* POPUP MODAL */
     .popup { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 1000; }
     .popup.show { display: flex; }
-    .popup-box { background: #fff; padding: 25px; border-radius: 24px; width: 85%; max-width: 320px; text-align: center; }
+    .popup-box { background: #fff; padding: 25px; border-radius: 28px; width: 85%; max-width: 320px; text-align: center; }
     .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px; }
-    .grid button { border: 0; padding: 15px; border-radius: 12px; font-weight: bold; cursor: pointer; color: #fff; }
+    .grid button { border: 0; padding: 16px; border-radius: 14px; font-weight: bold; cursor: pointer; color: #fff; font-size: 14px; }
   </style>
 </head>
 <body>
@@ -70,8 +107,13 @@
   <h1>Solat Tracker Pro</h1>
   <div class="subdate" id="fullDateText">Sila tunggu...</div>
 
-  <div class="card"><div class="date-scroll" id="dateBar"></div></div>
-  <div class="card" id="prayerList"></div>
+  <div class="card">
+    <div class="date-scroll" id="dateBar"></div>
+  </div>
+
+  <div class="card" id="prayerList">
+    <div style="text-align:center; padding: 20px;">Memuatkan data...</div>
+  </div>
 
   <div class="card">
     <h4 style="margin:0 0 10px 0">Heatmap (Instant Update)</h4>
@@ -82,7 +124,7 @@
 
 <div class="popup" id="modal">
   <div class="popup-box">
-    <h3 id="modalTitle" style="margin:0; text-transform: uppercase;">STATUS</h3>
+    <h3 id="modalTitle" style="margin:0; text-transform: uppercase;">STATUS SOLAT</h3>
     <p id="modalSub" style="font-size:12px; color:#666; margin:5px 0 0 0"></p>
     <div class="grid">
       <button style="background:var(--red)" onclick="submit(0)">Tak</button>
@@ -95,6 +137,7 @@
 </div>
 
 <script>
+  // API URL
   const API = "https://script.google.com/macros/s/AKfycbzrOi21t_Pdam9_rIKFo4dz2FL6lIc0WJeymSE6SeqMgh0OfvDYySAXkbJIkYKIBj_9/exec";
   const SOLAT = ["subuh", "zohor", "asar", "maghrib", "isyak"];
   const LABELS = ["Tak", "Lewat", "Awal", "Jemaah", "Belum"];
@@ -202,19 +245,26 @@
   async function submit(val) {
     closeModal();
     log(`Update: ${currentSolatKey}...`);
+
     if (!cachedData[updateDate]) cachedData[updateDate] = { date: updateDate };
     cachedData[updateDate][currentSolatKey] = val;
+
     if (updateDate === selectedDate) renderPrayers();
     const targetCell = document.getElementById(`hm-${updateDate}-${currentSolatKey}`);
-    if (targetCell) targetCell.className = `hm-cell ${MAP_CSS[val]}`;
+    if (targetCell) {
+        targetCell.className = `hm-cell ${MAP_CSS[val]}`;
+    }
+
     try {
       fetch(API, {
         method: "POST",
         mode: "no-cors",
         body: JSON.stringify({ date: updateDate, solat: currentSolatKey, value: val })
       });
-      log("Berjaya dihantar!");
-    } catch (e) { log("Ralat penghantaran!"); }
+      log("Data dikemaskini.");
+    } catch (e) { 
+      log("Ralat penghantaran!"); 
+    }
   }
 
   window.onload = () => {
@@ -224,3 +274,4 @@
 </script>
 </body>
 </html>
+
